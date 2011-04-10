@@ -1,0 +1,3 @@
+#Ignore all. This just makes sure that the dir is commited
+*
+!.gitignore
