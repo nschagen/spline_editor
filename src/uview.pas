@@ -45,6 +45,7 @@ type
     function ViewToScreen(aViewPos: TVector2f): TVector2i;
     function WorldToView(aVector: TVector3f): TVector2f;
     function ViewToWorld(aVector: TVector2f): TVector3f;
+    function ScreenDeltaToView(aDelta: TVector2i): TVector2f;
 
     procedure ReDraw();
     procedure Zoom(const aFactor: Single);
@@ -138,7 +139,7 @@ begin
   GridRect.x      := Floor(viewRect.x/GRID_SIZE);
   GridRect.y      := Floor(viewRect.y/GRID_SIZE);
   GridRect.width  := Ceil(viewRect.Width/GRID_SIZE)+1;
-  GridRect.height := Ceil(viewRect.Height/GRID_SIZE);
+  GridRect.height := Ceil(viewRect.Height/GRID_SIZE)+1;
 
   for X:=GridRect.x to GridRect.x + GridRect.Width do
   begin
@@ -220,6 +221,12 @@ begin
 end;
 
 procedure TSplineEditorView.Move(const aMouseDelta: TVector2i);
+begin
+  ViewCenter := VecAdd(ViewCenter,
+                       ViewToWorld( ScreenDeltaToView( Vec2i(-aMouseDelta.x,-aMouseDelta.y)) ));
+end;
+
+function TSplineEditorView.ScreenDeltaToView(aDelta: TVector2i): TVector2f;
 var
   XScale, YScale: Single;
   viewRect:       TnaRectf;
@@ -227,7 +234,7 @@ begin
   viewRect := getViewRect();
   XScale := viewRect.width / FScreenWidth;
   YScale := viewRect.height / FScreenHeight;
-  ViewCenter := VecAdd(ViewCenter, ViewToWorld( Vec2fScale( Vec2f(-aMouseDelta.x,-aMouseDelta.y), XScale, YScale) ));
+  Result := Vec2fScale( Vec2f(aDelta.x,aDelta.y), XScale, YScale);
 end;
 
 function TSplineEditorView.GetViewRect(): TnaRectf;

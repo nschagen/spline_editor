@@ -56,7 +56,7 @@ type
 
 
   function Rectf(const x, y, w, h: Single): TnaRectf;
-
+  function RectfHasPoint(const aR: TnaRectf; const aPt: TVector2f): Boolean;
 
   //AABB
   function AABBi(const x, y, z, w, h, l: Integer): TnaAABBi;
@@ -110,6 +110,14 @@ begin
   Result.y := y;
   Result.Width := w;
   Result.Height := h;
+end;
+
+function RectfHasPoint(const aR: TnaRectf; const aPt: TVector2f): Boolean;
+begin
+  Result := (aPt.x < Max2f(aR.x, aR.x + aR.Width)) and
+            (aPt.x > Min2f(aR.x, aR.x + aR.Width)) and
+            (aPt.y < Max2f(aR.y, aR.y + aR.Height)) and
+            (aPt.y > Min2f(aR.y, aR.y + aR.Height));
 end;
 
 function AABBi(const x, y, z, w, h, l: Integer): TnaAABBi;
