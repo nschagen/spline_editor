@@ -80,11 +80,13 @@ type
 
   //2D Integer vectors
 
-  function Vec2i(x, y: Integer): TVector2i;
+  function Vec2i(x, y: Integer): TVector2i; overload;
+  function Vec2i(aVec: TVector2f): TVector2i; overload;
 
   //2D float vectors
 
-  function Vec2f(x, y: Single): TVector2f;
+  function Vec2f(x, y: Single): TVector2f; overload;
+  function Vec2f(aVec: TVector2i): TVector2f; overload;
   function vec2fAdd(const aV1, aV2: TVector2f): TVector2f;
   function vec2fSub(const aV1, aV2: TVector2f): TVector2f;
   function vec2fScale(const aVec: TVector2f; const aXScale, aYScale: Single): TVector2f;
@@ -140,12 +142,24 @@ begin
   Result.y := y;
 end;
 
+function Vec2i(aVec: TVector2f): TVector2i;
+begin
+  Result.x := Round(aVec.x);
+  Result.y := Round(aVec.y);
+end;
+
 //2D Float vectors
 
 function Vec2f(x, y: Single): TVector2f;
 begin
   Result.x := x;
   Result.y := y;
+end;
+
+function Vec2f(aVec: TVector2i): TVector2f;
+begin
+  Result.x := aVec.x;
+  Result.y := aVec.y;
 end;
 
 function vec2fAdd(const aV1, aV2: TVector2f): TVector2f;

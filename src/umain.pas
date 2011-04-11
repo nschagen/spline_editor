@@ -51,13 +51,21 @@ type
     Splitter1: TSplitter;
     Splitter2: TSplitter;
     StatusBar1: TStatusBar;
+    procedure AnchorListClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure mnCloseClick(Sender: TObject);
     procedure mnNewClick(Sender: TObject);
     procedure mnOpenClick(Sender: TObject);
+    procedure mnResetCameraClick(Sender: TObject);
     procedure mnSaveClick(Sender: TObject);
+    procedure mnTangentsClick(Sender: TObject);
+    procedure mnUpVectorsClick(Sender: TObject);
+    procedure mnXYClick(Sender: TObject);
+    procedure mnZoomInClick(Sender: TObject);
+    procedure mnZoomOutClick(Sender: TObject);
     procedure ViewPaintBoxPaint(Sender: TObject);
+    procedure SelectViewPlane(Sender: TObject);
   private
     { private declarations }
   public
@@ -115,6 +123,10 @@ begin
   AddAnchor( Vec3f(30, -25, -3), Vec3f(15, 5,0) );
   AddAnchor( Vec3f(20, 20,-5), Vec3f(-15, 15,0) );
   AddAnchor( Vec3f(-20, 20,2), Vec3f(-15, -15,0) );
+end;
+
+procedure TMainForm.AnchorListClick(Sender: TObject);
+begin
 
 end;
 
@@ -153,6 +165,42 @@ procedure TMainForm.mnSaveClick(Sender: TObject);
 begin
   //Save spline to file
 
+end;
+
+procedure TMainForm.mnTangentsClick(Sender: TObject);
+begin
+  TMenuItem(Sender).Checked := not TMenuItem(Sender).Checked;
+  View.ShowTangents := TMenuItem(Sender).Checked;
+end;
+
+procedure TMainForm.mnUpVectorsClick(Sender: TObject);
+begin
+  TMenuItem(Sender).Checked := not TMenuItem(Sender).Checked;
+  View.ShowUpVectors := TMenuItem(Sender).Checked;
+end;
+
+procedure TMainForm.mnXYClick(Sender: TObject);
+begin
+
+end;
+
+procedure TMainForm.mnZoomInClick(Sender: TObject);
+begin
+  View.Zoom(0.80);
+  View.ReDraw();
+end;
+
+procedure TMainForm.mnZoomOutClick(Sender: TObject);
+begin
+  View.Zoom(1.25);
+  View.ReDraw();
+end;
+
+procedure TMainForm.mnResetCameraClick(Sender: TObject);
+begin
+  View.ViewCenter := Vec3f(0,0,0);
+  View.ViewHeight := 100;
+  View.ReDraw();
 end;
 
 procedure TMainForm.ViewPaintBoxPaint(Sender: TObject);
@@ -200,6 +248,16 @@ begin
 
   image.Draw(ViewPaintBox.Canvas,0,0,True);
   image.free;
+end;
+
+procedure TMainForm.SelectViewPlane(Sender: TObject);
+begin
+  case TComponent(Sender).Tag of
+  0:  View.ViewPlane := vpXY;
+  1:  View.ViewPlane := vpYZ;
+  2:  View.ViewPlane := vpXZ;
+  end;
+  View.ReDraw();
 end;
 
 end.

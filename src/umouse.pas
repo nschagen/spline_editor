@@ -9,7 +9,7 @@ uses
   nasha_primitives, nasha_vectors;
 
 type
-  TDragOperation = (doNone, doAnchor, doCamera);
+  TDragOperation = (doNone, doAnchor, doMoveView);
 
   { TMouseController }
 
@@ -21,6 +21,7 @@ type
     FStart:       TVector2i;
     FDragHandle:  TAbstractHandle;
     function IsHandleClicked(aMousePos: TVector2i): TAbstractHandle;
+    function IsOnViewBorder(aMouesPos: TVector2i): TVector2f;
   public
     constructor Create();
 
@@ -53,32 +54,52 @@ procedure TMouseController.EditorMouseDown(Sender: TObject; Button: TMouseButton
 begin
   if Button = mbLeft then
   begin
-    FDragHandle := IsHandleClicked(Vec2i(X,Y));
-    if Assigned(FDragHandle) then
-      FOperation := doAnchor;
-    FStart := vec2i(X,Y);
+    //Left click...
+    if View.ShowTangents then
+    begin
+      //did we click a handle? If so, move it!
+      FDragHandle := IsHandleClicked(Vec2i(X,Y));
+      if Assigned(FDragHandle) then
+        FOperation := doAnchor;
+    end;
   end
   else if Button = mbRight then
   begin
-    FOperation := doCamera;
-    FStart := vec2i(X,Y);
+    //Right click, move view
+    FOperation := doMoveView;
   end;
+
+  FStart := vec2i(X,Y);
 end;
 
 procedure TMouseController.EditorMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
 var
-  v: TVector3f;
+  handlePos: TVector3f;
+  viewMove: TVector2f;
+  handleMove: TVector2i;
 begin
   case FOperation of
-    doCamera: begin
+    doMoveView: begin
+                //Move view
                 View.Move( Vec2i( X-FStart.X, Y-FStart.Y ));
                 FStart := vec2i(X,Y);
               end;
     doAnchor: begin
                 //Move handle proportional to movement of mouse in screen space
-                v := FDragHandle.GetPosition();
-                v := VecAdd(v, View.ViewToWorld( View.ScreenDeltaToView( Vec2i( X-FStart.X, Y-FStart.Y ) ) ) );
-                FDragHandle.SetPosition(v);
+                handlePos := FDragHandle.GetPosition();
+
+                //Do we need to shift the view while moving an anchor??
+                //Ammount of movement is proportional to viewHeight
+                viewMove := Vec2fScaleFactor( IsOnViewBorder(Vec2i(X,Y)), (View.ViewHeight/10) );
+                View.ViewCenter := VecAdd(View.ViewCenter, View.ScreenDeltaToWorld(Vec2i(viewMove)));
+
+                //Compute handle displacement vector
+                handleMove := Vec2i( X - FStart.x + Round(viewMove.x),
+                                     Y - FStart.y + Round(viewMove.y));
+
+                //Move handle and redraw
+                handlePos := VecAdd(handlePos, View.ScreenDeltaToWorld(handleMove));
+                FDragHandle.SetPosition(handlePos);
                 View.ReDraw();
 
                 FStart := vec2i(X,Y);
@@ -89,7 +110,7 @@ end;
 procedure TMouseController.EditorMouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 begin
   case FOperation of
-    doCamera: begin
+    doMoveView: begin
 
               end;
   end;
@@ -146,6 +167,21 @@ begin
     end;
     Handle.Free();
   end;
+end;
+
+//Checks whether the mouse is on the border of the view
+//If so, return a vector that indicates in which direction the view should be moved
+function TMouseController.IsOnViewBorder(aMouesPos: TVector2i): TVector2f;
+var
+  mousepos: TVector2f;
+begin
+  mousepos.x := aMouesPos.x / View.ScreenWidth;
+  mousepos.y := aMouesPos.y / View.ScreenHeight;
+  Result := Vec2f(0,0);
+  if (mousepos.x < 0.1) then Result.x := -1;
+  if (mousepos.x > 0.9) then Result.x :=  1;
+  if (mousepos.y < 0.1) then Result.y := -1;
+  if (mousepos.y > 0.9) then Result.y :=  1;
 end;
 
 end.

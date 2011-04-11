@@ -34,6 +34,7 @@ object MainForm: TMainForm
       Width = 168
       Align = alTop
       ItemHeight = 0
+      OnClick = AnchorListClick
       TabOrder = 0
     end
     object Splitter2: TSplitter
@@ -252,39 +253,49 @@ object MainForm: TMainForm
         GroupIndex = 1
         RadioItem = True
         ShortCut = 113
+        OnClick = SelectViewPlane
       end
       object mnYZ: TMenuItem
+        Tag = 1
         Caption = 'YZ Plane'
         GroupIndex = 1
         RadioItem = True
         ShortCut = 114
+        OnClick = SelectViewPlane
       end
       object mnXZ: TMenuItem
+        Tag = 2
         Caption = 'XZ Plane'
         GroupIndex = 1
         RadioItem = True
         ShortCut = 115
+        OnClick = SelectViewPlane
       end
       object mnTangents: TMenuItem
         Caption = 'Tangents'
         Checked = True
         ShortCut = 116
+        OnClick = mnTangentsClick
       end
       object mnUpVectors: TMenuItem
         Caption = 'UpVectors'
         ShortCut = 117
+        OnClick = mnUpVectorsClick
       end
       object mnZoomIn: TMenuItem
         Caption = 'Zoom in'
         ShortCut = 16491
+        OnClick = mnZoomInClick
       end
       object mnZoomOut: TMenuItem
         Caption = 'Zoom out'
         ShortCut = 16493
+        OnClick = mnZoomOutClick
       end
       object mnResetCamera: TMenuItem
         Caption = 'Reset Camera'
         ShortCut = 16466
+        OnClick = mnResetCameraClick
       end
     end
     object mnHelp: TMenuItem

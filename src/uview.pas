@@ -18,6 +18,8 @@ type
   TSplineEditorView = class
   private
     FPaintBox:    TPaintBox;
+    FShowTangents: Boolean;
+    FShowUpVectors: Boolean;
     FSplineModel: TSplineModel;
     FViewPlane:   TViewPlane;
     FViewCenter:  TVector3f;
@@ -27,6 +29,8 @@ type
     FScreenBitmap:TBGRABitmap;
     FOnDraw:      TNotifyEvent;
     function GetViewRect(): TnaRectf;
+    procedure SetShowTangents(const AValue: Boolean);
+    procedure SetShowUpVectors(const AValue: Boolean);
     procedure SetViewCenter(const AValue: TVector3f);
     procedure SetViewHeight(const AValue: Single);
     procedure SetViewPlane(aViewPlane: TViewPlane);
@@ -46,6 +50,7 @@ type
     function WorldToView(aVector: TVector3f): TVector2f;
     function ViewToWorld(aVector: TVector2f): TVector3f;
     function ScreenDeltaToView(aDelta: TVector2i): TVector2f;
+    function ScreenDeltaToWorld(aDelta: TVector2i): TVector3f;
 
     procedure ReDraw();
     procedure Zoom(const aFactor: Single);
@@ -59,6 +64,8 @@ type
     property ScreenWidth: Integer read FScreenWidth;
     property ScreenHeight: Integer read FScreenHeight;
     property ScreenBitmap: TBGRABitmap read FScreenBitmap;
+    property ShowTangents: Boolean read FShowTangents write SetShowTangents;
+    property ShowUpVectors: Boolean read FShowUpVectors write SetShowUpVectors;
   end;
 
 
@@ -86,6 +93,8 @@ begin
   FViewHeight         := 100.0;
   FScreenBitmap       := TBGRABitmap.Create();
   FOnDraw             := nil;
+  FShowTangents       := True;
+  FShowUpVectors      := True;
 
   FPaintBox           := aPaintBox;
   FPaintBox.OnPaint   := @Draw;
@@ -115,13 +124,15 @@ begin
 end;
 
 procedure TSplineEditorView.DrawBackground();
+var
+  GridSize: Single;
 
   procedure DrawGridLine(x1,y1,x2,y2: Single; c: TBGRAPixel; Thickness: Single);
   var
     v1,v2: TVector2i;
   begin
-    v1 := ViewToScreen(vec2fScaleFactor(vec2f(x1,y1), GRID_SIZE));
-    v2 := ViewToScreen(vec2fScaleFactor(vec2f(x2,y2), GRID_SIZE));
+    v1 := ViewToScreen(vec2fScaleFactor(vec2f(x1,y1), GridSize));
+    v2 := ViewToScreen(vec2fScaleFactor(vec2f(x2,y2), GridSize));
     FScreenBitmap.DrawLineAntiAlias(v1.x, v1.y, v2.x, v2.y, c, Thickness );
   end;
 
@@ -135,11 +146,15 @@ begin
   FScreenBitmap.Rectangle(0,0,FScreenWidth,FScreenHeight, BGRA(30,30,30,255), BGRA(30,30,30,255), dmSet);
   c := BGRA(192,192,192,255);
 
+  GridSize := GRID_SIZE;
+  if viewHeight > 300 then
+    GridSize := GRID_SIZE * 5;
+
   ViewRect        := GetViewRect();
-  GridRect.x      := Floor(viewRect.x/GRID_SIZE);
-  GridRect.y      := Floor(viewRect.y/GRID_SIZE);
-  GridRect.width  := Ceil(viewRect.Width/GRID_SIZE)+1;
-  GridRect.height := Ceil(viewRect.Height/GRID_SIZE)+1;
+  GridRect.x      := Floor(viewRect.x/GridSize);
+  GridRect.y      := Floor(viewRect.y/GridSize);
+  GridRect.width  := Ceil(viewRect.Width/GridSize)+1;
+  GridRect.height := Ceil(viewRect.Height/GridSize)+1;
 
   for X:=GridRect.x to GridRect.x + GridRect.Width do
   begin
@@ -192,18 +207,21 @@ begin
   end;
   FScreenBitmap.DrawPolygonAntialias(storedSpline,c,2);
 
-  for I:=0 to FSplineModel.GetHandleCount()-1 do
+  if FShowTangents then
   begin
-    Handle := FSplineModel.GetHandle(I);
-    pos := WorldToScreen(Handle.GetPosition());
-    FScreenBitmap.Rectangle(Round(pos.x-5), Round(pos.y-5),
-                            Round(pos.x+5), Round(pos.y+5),BGRA(255,255,255,255), BGRA(0,0,255,192), dmLinearBlend);
-    Handle.Free();
-  end;
+    for I:=0 to FSplineModel.GetHandleCount()-1 do
+    begin
+      Handle := FSplineModel.GetHandle(I);
+      pos := WorldToScreen(Handle.GetPosition());
+      FScreenBitmap.Rectangle(Round(pos.x-5), Round(pos.y-5),
+                              Round(pos.x+5), Round(pos.y+5),BGRA(255,255,255,255), BGRA(0,0,255,192), dmLinearBlend);
+      Handle.Free();
+    end;
 
-  //Draw anchors
-  for I:=0 to FSplineModel.Spline.AnchorCount -1 do
-    DrawAnchor(FSplineModel.Spline.Anchors[I]);
+    //Draw anchors
+    for I:=0 to FSplineModel.Spline.AnchorCount -1 do
+      DrawAnchor(FSplineModel.Spline.Anchors[I]);
+  end;
 end;
 
 procedure TSplineEditorView.DrawAnchor(aAnchor: TSplineAnchor);
@@ -234,7 +252,12 @@ begin
   viewRect := getViewRect();
   XScale := viewRect.width / FScreenWidth;
   YScale := viewRect.height / FScreenHeight;
-  Result := Vec2fScale( Vec2f(aDelta.x,aDelta.y), XScale, YScale);
+  Result := Vec2fScale( Vec2f(aDelta), XScale, YScale);
+end;
+
+function TSplineEditorView.ScreenDeltaToWorld(aDelta: TVector2i): TVector3f;
+begin
+  Result := ViewToWorld(ScreenDeltaToView(aDelta));
 end;
 
 function TSplineEditorView.GetViewRect(): TnaRectf;
@@ -353,6 +376,18 @@ end;
 procedure TSplineEditorView.SetViewPlane(aViewPlane: TViewPlane);
 begin
   FViewPlane := aViewPlane;
+  Redraw();
+end;
+
+procedure TSplineEditorView.SetShowTangents(const AValue: Boolean);
+begin
+  FShowTangents := AValue;
+  Redraw();
+end;
+
+procedure TSplineEditorView.SetShowUpVectors(const AValue: Boolean);
+begin
+  FShowUpVectors := AValue;
   Redraw();
 end;
 
