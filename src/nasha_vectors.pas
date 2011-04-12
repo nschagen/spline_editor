@@ -82,6 +82,8 @@ type
 
   function Vec2i(x, y: Integer): TVector2i; overload;
   function Vec2i(aVec: TVector2f): TVector2i; overload;
+  function Vec2iAdd(const aV1, aV2: TVector2i): TVector2i;
+  function Vec2iSub(const aV1, aV2: TVector2i): TVector2i;
 
   //2D float vectors
 
@@ -146,6 +148,18 @@ function Vec2i(aVec: TVector2f): TVector2i;
 begin
   Result.x := Round(aVec.x);
   Result.y := Round(aVec.y);
+end;
+
+function Vec2iAdd(const aV1, aV2: TVector2i): TVector2i;
+begin
+  Result.x := aV1.x + aV2.x;
+  Result.y := aV1.y + aV2.y;
+end;
+
+function Vec2iSub(const aV1, aV2: TVector2i): TVector2i;
+begin
+  Result.x := aV1.x - aV2.x;
+  Result.y := aV1.y - aV2.y;
 end;
 
 //2D Float vectors

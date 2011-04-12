@@ -29,6 +29,7 @@ type
     FScreenBitmap:TBGRABitmap;
     FOnDraw:      TNotifyEvent;
     function GetViewRect(): TnaRectf;
+    procedure GetAxisColors(out aHorizontal, aVertical: TBGRAPixel);
     procedure SetShowTangents(const AValue: Boolean);
     procedure SetShowUpVectors(const AValue: Boolean);
     procedure SetViewCenter(const AValue: TVector3f);
@@ -36,6 +37,7 @@ type
     procedure SetViewPlane(aViewPlane: TViewPlane);
     procedure DrawBackground();
     procedure DrawSpline();
+    procedure DrawAxes();
     procedure DrawAnchor(aAnchor: TSplineAnchor);
     procedure Draw(Sender: TObject);
     procedure Resize(Sender: TObject);
@@ -78,6 +80,10 @@ const
   CLR_ANCHOR     = TColor($0000FF);
   CLR_TANGENT    = TColor($FF00FF);
 
+  AXIS_COLOR_X   = TColor($0000FF);
+  AXIS_COLOR_Y   = TColor($00FF00);
+  AXIS_COLOR_Z   = TColor($FF0000);
+
   GRID_SIZE      = 10.0;
 
 implementation
@@ -88,7 +94,7 @@ constructor TSplineEditorView.Create(aPaintBox: TPaintBox);
 begin
   inherited Create();
   FSplineModel        := nil;
-  FViewPlane          := vpXY;
+  FViewPlane          := vpXZ;
   FViewCenter         := vec3f(0,0,0);
   FViewHeight         := 100.0;
   FScreenBitmap       := TBGRABitmap.Create();
@@ -142,9 +148,14 @@ var
   ViewRect: TnaRectf;
   GridRect: TnaRecti;
   t:        Single;
+  HorColor,
+  VerColor: TBGRAPixel;
 begin
   FScreenBitmap.Rectangle(0,0,FScreenWidth,FScreenHeight, BGRA(30,30,30,255), BGRA(30,30,30,255), dmSet);
   c := BGRA(192,192,192,255);
+
+  //Determine Axis colors
+  GetAxisColors(HorColor, VerColor);
 
   GridSize := GRID_SIZE;
   if viewHeight > 300 then
@@ -160,28 +171,29 @@ begin
   begin
     if X=0 then
     begin
-      c := BGRA(0,192,0,255);
-      t := 2;
-    end else begin
-      c := BGRA(60,60,60,255);
-      t := 1;
-    end;
-    DrawGridLine(X, GridRect.y,
-                 X, GridRect.y+GridRect.Height, c, t );
-  end;
-  for Y:=GridRect.y to GridRect.y + GridRect.Height do
-  begin
-    if Y=0 then
-    begin
-      c := BGRA(192,0,0,255);
+      c := VerColor;
+      c.alpha := 128;
       t := 2;
     end else begin
       c := BGRA(60,60,60,255);
       t := 1;
     end;
 
-    DrawGridLine(GridRect.x,                Y,
-                 GridRect.x+GridRect.Width, Y, c, t );
+    DrawGridLine(X, GridRect.y, X, GridRect.y+GridRect.Height, c, t );
+  end;
+  for Y:=GridRect.y to GridRect.y + GridRect.Height do
+  begin
+    if Y=0 then
+    begin
+      c := HorColor;
+      c.alpha := 128;
+      t := 2;
+    end else begin
+      c := BGRA(60,60,60,255);
+      t := 1;
+    end;
+
+    DrawGridLine(GridRect.x, Y, GridRect.x+GridRect.Width, Y, c, t );
   end;
 end;
 
@@ -221,6 +233,51 @@ begin
     //Draw anchors
     for I:=0 to FSplineModel.Spline.AnchorCount -1 do
       DrawAnchor(FSplineModel.Spline.Anchors[I]);
+  end;
+
+  //Also draw axes in the bottom left corner
+  DrawAxes();
+end;
+
+procedure TSplineEditorView.DrawAxes();
+
+  //This just draws a line, for sake of simplicity ;)
+  procedure DrawArrow(origin, direction: TVector2i; c: TBGRAPixel);
+  var
+    v2: TVector2i;
+  begin
+    v2 := Vec2iAdd(origin, direction);
+    FScreenBitmap.DrawLineAntialias(origin.x,origin.y,v2.x,v2.y,c,3);
+  end;
+
+var
+  HorColor, VerColor: TBGRAPixel;
+  origin: TVector2i;
+begin
+  Origin := Vec2i(30, ScreenHeight - 30);
+
+  case FViewPlane of
+    vpXY: begin
+            HorColor := BGRA(255,0,0,255);
+            VerColor := BGRA(0,255,0,255);
+
+            DrawArrow(Origin, Vec2i(Vec2fScaleFactor(WorldToView(Vec3f(1,0,0)),20)), ColorToBGRA(AXIS_COLOR_X));
+            DrawArrow(Origin, Vec2i(Vec2fScaleFactor(WorldToView(Vec3f(0,1,0)),20)), ColorToBGRA(AXIS_COLOR_Y));
+          end;
+    vpYZ: begin
+            HorColor := BGRA(0,255,0,255);
+            VerColor := BGRA(0,0,255,255);
+
+            DrawArrow(Origin, Vec2i(Vec2fScaleFactor(WorldToView(Vec3f(0,1,0)),20)), ColorToBGRA(AXIS_COLOR_Y));
+            DrawArrow(Origin, Vec2i(Vec2fScaleFactor(WorldToView(Vec3f(0,0,1)),20)), ColorToBGRA(AXIS_COLOR_Z));
+          end;
+    vpXZ: begin
+            HorColor := BGRA(255,0,0,255);
+            VerColor := BGRA(0,0,255,255);
+
+            DrawArrow(Origin, Vec2i(Vec2fScaleFactor(WorldToView(Vec3f(1,0,0)),20)), ColorToBGRA(AXIS_COLOR_X));
+            DrawArrow(Origin, Vec2i(Vec2fScaleFactor(WorldToView(Vec3f(0,0,1)),20)), ColorToBGRA(AXIS_COLOR_Z));
+          end;
   end;
 end;
 
@@ -319,11 +376,11 @@ begin
   case FViewPlane of
   vpXY: begin
           Result.x := aVector.x;
-          Result.y := aVector.y;
+          Result.y := -aVector.y;
         end;
   vpYZ: begin
-          Result.x := aVector.y;
-          Result.y := aVector.z;
+          Result.x := aVector.z;
+          Result.y := -aVector.y;
         end;
   vpXZ: begin
           Result.x := aVector.x;
@@ -337,13 +394,13 @@ begin
   case FViewPlane of
   vpXY: begin
           Result.x := aVector.x;
-          Result.y := aVector.y;
+          Result.y := -aVector.y;
           Result.z := 0;
         end;
   vpYZ: begin
           Result.x := 0;
-          Result.y := aVector.x;
-          Result.z := aVector.y;
+          Result.y := -aVector.y;
+          Result.z := aVector.x;
         end;
   vpXZ: begin
           Result.x := aVector.x;
@@ -389,6 +446,24 @@ procedure TSplineEditorView.SetShowUpVectors(const AValue: Boolean);
 begin
   FShowUpVectors := AValue;
   Redraw();
+end;
+
+procedure TSplineEditorView.GetAxisColors(out aHorizontal, aVertical: TBGRAPixel);
+begin
+  case FViewPlane of
+  vpXY: begin
+          aHorizontal := ColorToBGRA(AXIS_COLOR_X);
+          aVertical   := ColorToBGRA(AXIS_COLOR_Y);
+        end;
+  vpYZ: begin
+          aHorizontal := ColorToBGRA(AXIS_COLOR_Y);
+          aVertical   := ColorToBGRA(AXIS_COLOR_Z);
+        end;
+  vpXZ: begin
+          aHorizontal := ColorToBGRA(AXIS_COLOR_X);
+          aVertical   := ColorToBGRA(AXIS_COLOR_Z);
+        end;
+  end;
 end;
 
 end.

@@ -119,10 +119,10 @@ begin
   MouseController.SplineModel := SplineModel;
   MouseController.View := View;
 
-  AddAnchor( Vec3f(-20, -20, 0), Vec3f(15, -15,0) );
-  AddAnchor( Vec3f(30, -25, -3), Vec3f(15, 5,0) );
-  AddAnchor( Vec3f(20, 20,-5), Vec3f(-15, 15,0) );
-  AddAnchor( Vec3f(-20, 20,2), Vec3f(-15, -15,0) );
+  AddAnchor( Vec3f(-20, 0, -20), Vec3f(15, 0, -15) );
+  AddAnchor( Vec3f(30, -3, -25), Vec3f(15, 0, 5) );
+  AddAnchor( Vec3f(20, -5, 20), Vec3f(-15, 0, 15) );
+  AddAnchor( Vec3f(-20, 2, 20), Vec3f(-15, 0, -15) );
 end;
 
 procedure TMainForm.AnchorListClick(Sender: TObject);
@@ -252,6 +252,7 @@ end;
 
 procedure TMainForm.SelectViewPlane(Sender: TObject);
 begin
+  TMenuItem(Sender).Checked := True;
   case TComponent(Sender).Tag of
   0:  View.ViewPlane := vpXY;
   1:  View.ViewPlane := vpYZ;

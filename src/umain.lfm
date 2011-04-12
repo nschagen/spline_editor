@@ -249,7 +249,7 @@ object MainForm: TMainForm
     object mnView: TMenuItem
       Caption = 'View'
       object mnXY: TMenuItem
-        Caption = 'XY Plane'
+        Caption = 'Front view'
         GroupIndex = 1
         RadioItem = True
         ShortCut = 113
@@ -257,7 +257,7 @@ object MainForm: TMainForm
       end
       object mnYZ: TMenuItem
         Tag = 1
-        Caption = 'YZ Plane'
+        Caption = 'Side view'
         GroupIndex = 1
         RadioItem = True
         ShortCut = 114
@@ -265,7 +265,7 @@ object MainForm: TMainForm
       end
       object mnXZ: TMenuItem
         Tag = 2
-        Caption = 'XZ Plane'
+        Caption = 'Top view'
         GroupIndex = 1
         RadioItem = True
         ShortCut = 115
