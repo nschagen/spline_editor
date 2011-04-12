@@ -5,7 +5,7 @@ unit usplinemodel;
 interface
 
 uses
-  Classes, SysUtils, uspline, nasha_vectors;
+  Classes, SysUtils, uspline, nasha_vectors, nasha_primitives;
 
 type
   TAbstractHandle = class;
@@ -22,6 +22,10 @@ type
 
     function GetHandle(I: Integer): TAbstractHandle;
     function getHandleCount: Integer;
+    function getAABB(): TnaAABBf;
+
+    procedure Scale(aFactors: TVector3f);
+    procedure Move(aDisplacement: TVector3f);
 
     property Spline: TSpline read FSpline write SetSpline;
   end;
@@ -81,6 +85,44 @@ end;
 function TSplineModel.getHandleCount: Integer;
 begin
   Result := Spline.AnchorCount * 3;
+end;
+
+function TSplineModel.getAABB(): TnaAABBf;
+var
+  v: TVector3f;
+  I: Integer;
+begin
+  v := Spline.Anchors[0].Position;
+  Result.Min := v;
+  Result.Size := Vec3f(0,0,0);
+  //Sample points along spline and add them to the AABB
+  for I:=1 to 99 do
+  begin
+    v := Spline.GetPosition(I/100);
+    AABBfAddPoint(Result, v);
+  end;
+end;
+
+procedure TSplineModel.Scale(aFactors: TVector3f);
+var
+  I: Integer;
+begin
+  for I:=0 to Spline.AnchorCount-1 do
+  begin
+    Spline.Anchors[I].Position      := vecScale(Spline.Anchors[I].Position, aFactors);
+    Spline.Anchors[I].TangentVector := vecScale(Spline.Anchors[I].TangentVector, aFactors);
+  end;
+end;
+
+procedure TSplineModel.Move(aDisplacement: TVector3f);
+var
+  I: Integer;
+  Anchor: TSplineAnchor;
+begin
+  for I:=0 to Spline.AnchorCount-1 do
+  begin
+    Spline.Anchors[I].Position := vecAdd(Spline.Anchors[I].Position, aDisplacement);
+  end;
 end;
 
 { TSplineAnchorHandle }

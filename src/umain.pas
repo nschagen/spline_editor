@@ -27,6 +27,9 @@ type
     AnchorList: TListBox;
     MainMenu1: TMainMenu;
     ContentsMemo: TMemo;
+    mnScaleSpline: TMenuItem;
+    mnMoveSpline: TMenuItem;
+    mnEdit: TMenuItem;
     mnAbout: TMenuItem;
     mnHelp: TMenuItem;
     mnResetCamera: TMenuItem;
@@ -51,20 +54,21 @@ type
     Splitter1: TSplitter;
     Splitter2: TSplitter;
     StatusBar1: TStatusBar;
-    procedure AnchorListClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
+    procedure mnAboutClick(Sender: TObject);
     procedure mnCloseClick(Sender: TObject);
+    procedure mnEditClick(Sender: TObject);
+    procedure mnMoveSplineClick(Sender: TObject);
     procedure mnNewClick(Sender: TObject);
     procedure mnOpenClick(Sender: TObject);
     procedure mnResetCameraClick(Sender: TObject);
     procedure mnSaveClick(Sender: TObject);
+    procedure mnScaleSplineClick(Sender: TObject);
     procedure mnTangentsClick(Sender: TObject);
     procedure mnUpVectorsClick(Sender: TObject);
-    procedure mnXYClick(Sender: TObject);
     procedure mnZoomInClick(Sender: TObject);
     procedure mnZoomOutClick(Sender: TObject);
-    procedure ViewPaintBoxPaint(Sender: TObject);
     procedure SelectViewPlane(Sender: TObject);
   private
     { private declarations }
@@ -73,13 +77,15 @@ type
   end; 
 
 var
-  MainForm:     TMainForm;
-  View:         TSplineEditorView;
-  MouseController: TMouseController;
-  SplineModel:  TSplineModel;
-  Spline:       TSpline;
+  MainForm:         TMainForm;
+  View:             TSplineEditorView;
+  MouseController:  TMouseController;
+  SplineModel:      TSplineModel;
+  Spline:           TSpline;
 
 implementation
+
+uses umoveform, uscaleform;
 
 {$R *.lfm}
 
@@ -125,17 +131,17 @@ begin
   AddAnchor( Vec3f(-20, 2, 20), Vec3f(-15, 0, -15) );
 end;
 
-procedure TMainForm.AnchorListClick(Sender: TObject);
-begin
-
-end;
-
 procedure TMainForm.FormDestroy(Sender: TObject);
 begin
   //Destroy editor
   View.Free();
   Spline.Free();
   SplineModel.Free();
+end;
+
+procedure TMainForm.mnAboutClick(Sender: TObject);
+begin
+  ShowMessage('Spline Editor by Nathan Schagen a.k.a Chronozphere (April 2011)');
 end;
 
 procedure TMainForm.mnNewClick(Sender: TObject);
@@ -155,6 +161,11 @@ begin
 
 end;
 
+procedure TMainForm.mnEditClick(Sender: TObject);
+begin
+
+end;
+
 procedure TMainForm.mnOpenClick(Sender: TObject);
 begin
   //Open spline from file
@@ -167,6 +178,30 @@ begin
 
 end;
 
+procedure TMainForm.mnMoveSplineClick(Sender: TObject);
+var
+  displacement: TVector3f;
+begin
+  displacement := ShowMoveDialog();
+  if not VecEquals(displacement, Vec3f(0,0,0)) then
+  begin
+    SplineModel.Move(displacement);
+    View.ReDraw();
+  end;
+end;
+
+procedure TMainForm.mnScaleSplineClick(Sender: TObject);
+var
+  factors: TVector3f;
+begin
+  factors := ShowScaleDialog( SplineModel.getAABB() );
+  if not VecEquals(factors, Vec3f(0,0,0)) then
+  begin
+    SplineModel.Scale(factors);
+    View.ReDraw();
+  end;
+end;
+
 procedure TMainForm.mnTangentsClick(Sender: TObject);
 begin
   TMenuItem(Sender).Checked := not TMenuItem(Sender).Checked;
@@ -177,11 +212,6 @@ procedure TMainForm.mnUpVectorsClick(Sender: TObject);
 begin
   TMenuItem(Sender).Checked := not TMenuItem(Sender).Checked;
   View.ShowUpVectors := TMenuItem(Sender).Checked;
-end;
-
-procedure TMainForm.mnXYClick(Sender: TObject);
-begin
-
 end;
 
 procedure TMainForm.mnZoomInClick(Sender: TObject);
@@ -201,53 +231,6 @@ begin
   View.ViewCenter := Vec3f(0,0,0);
   View.ViewHeight := 100;
   View.ReDraw();
-end;
-
-procedure TMainForm.ViewPaintBoxPaint(Sender: TObject);
-var
-  image: TBGRABitmap;
-  pts: array of TPointF;
-  storedSpline: array of TPointF;
-  c: TBGRAPixel;
-  I: integer;
-  SegmentCount: Integer;
-  v: TVector3f;
-begin
-  //Redraw the view to internal bitmap
-  //Editor.View.ReDraw();
-
-  //Draw internal bitmap into paintbox
-  //Editor.View.ScreenBitmap.Draw(ViewPaintBox.Canvas,0,0,True);
-
-  image := TBGRABitmap.Create(ClientWidth,ClientHeight,ColorToBGRA(ColorToRGB(clBtnFace)));
-  image.Rectangle(0,0,ClientWidth,ClientHeight, BGRA(0,0,255,255), BGRA(0,0,255,255), dmSet);
-  c := ColorToBGRA(ColorToRGB(clWindowText));
-
-  SegmentCount := Round(Spline.CalculateLength()/5);
-  SetLength(storedSpline, SegmentCount);
-  for I:=0 to SegmentCount -1 do
-  begin
-    v := Spline.GetPosition(I/SegmentCount);
-    storedSpline[I].x := v.x;
-    storedSpline[I].y := v.y;
-    image.Rectangle(Round(v.x-2), Round(v.y-2),
-                    Round(v.x+2), Round(v.y+2),c,c, dmSet);
-  end;
-
-  image.DrawPolygonAntialias(storedSpline,c,2);
-
-  setLength(storedSpline, 3);
-  storedSpline[0].x := 50;
-  storedSpline[0].y := 50;
-  storedSpline[1].x := 100;
-  storedSpline[1].y := 100;
-  storedSpline[2].x := 0;
-  storedSpline[2].y := 100;
-
-  image.DrawPolygonAntialias(storedSpline,c,1);
-
-  image.Draw(ViewPaintBox.Canvas,0,0,True);
-  image.free;
 end;
 
 procedure TMainForm.SelectViewPlane(Sender: TObject);

@@ -60,9 +60,10 @@ type
 
   //AABB
   function AABBi(const x, y, z, w, h, l: Integer): TnaAABBi;
-
+  function AABBiAddPoint(const aAABB: TnaAABBi; aV: TVector3i): TnaAABBi;
 
   function AABBf(const x, y, z, w, h, l: Single): TnaAABBf;
+  function AABBfAddPoint(const aAABB: TnaAABBf; aV: TVector3f): TnaAABBf;
 
   //Circles
   function Circle(const aCenter: TVector2f; const aRadius: Single): TnaCircle;
@@ -130,6 +131,16 @@ begin
   Result.Length := l;
 end;
 
+function AABBiAddPoint(const aAABB: TnaAABBi; aV: TVector3i): TnaAABBi;
+begin
+  Result.x      := Min2i(aAABB.x, aV.x);
+  Result.y      := Min2i(aAABB.y, aV.y);
+  Result.z      := Min2i(aAABB.z, aV.z);
+  Result.Width  := Max2i(aAABB.width, aV.x - aAABB.x);
+  Result.Height := Max2i(aAABB.Height, aV.y - aAABB.y);
+  Result.Length := Max2i(aAABB.Length, aV.z - aAABB.z);
+end;
+
 function AABBf(const x, y, z, w, h, l: Single): TnaAABBf;
 begin
   Result.x := x;
@@ -138,6 +149,16 @@ begin
   Result.Width := w;
   Result.Height := h;
   Result.Length := l;
+end;
+
+function AABBfAddPoint(const aAABB: TnaAABBf; aV: TVector3f): TnaAABBf;
+begin
+  Result.x      := Min2f(aAABB.x, aV.x);
+  Result.y      := Min2f(aAABB.y, aV.y);
+  Result.z      := Min2f(aAABB.z, aV.z);
+  Result.Width  := Max2f(aAABB.width, aV.x - aAABB.x);
+  Result.Height := Max2f(aAABB.Height, aV.y - aAABB.y);
+  Result.Length := Max2f(aAABB.Length, aV.z - aAABB.z);
 end;
 
 //Circles

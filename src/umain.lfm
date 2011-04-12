@@ -1,7 +1,7 @@
 object MainForm: TMainForm
-  Left = 265
+  Left = 279
   Height = 518
-  Top = 162
+  Top = 156
   Width = 793
   Caption = 'Spline Editor'
   ClientHeight = 494
@@ -16,7 +16,6 @@ object MainForm: TMainForm
     Top = 0
     Width = 617
     Align = alClient
-    OnPaint = ViewPaintBoxPaint
   end
   object LeftPanel: TPanel
     Left = 0
@@ -34,7 +33,6 @@ object MainForm: TMainForm
       Width = 168
       Align = alTop
       ItemHeight = 0
-      OnClick = AnchorListClick
       TabOrder = 0
     end
     object Splitter2: TSplitter
@@ -246,6 +244,18 @@ object MainForm: TMainForm
         OnClick = mnCloseClick
       end
     end
+    object mnEdit: TMenuItem
+      Caption = 'Edit'
+      OnClick = mnEditClick
+      object mnMoveSpline: TMenuItem
+        Caption = 'Move Spline'
+        OnClick = mnMoveSplineClick
+      end
+      object mnScaleSpline: TMenuItem
+        Caption = 'Scale Spline'
+        OnClick = mnScaleSplineClick
+      end
+    end
     object mnView: TMenuItem
       Caption = 'View'
       object mnXY: TMenuItem
@@ -302,6 +312,7 @@ object MainForm: TMainForm
       Caption = 'Help'
       object mnAbout: TMenuItem
         Caption = 'About'
+        OnClick = mnAboutClick
       end
     end
   end
