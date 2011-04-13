@@ -53,7 +53,7 @@ object MainForm: TMainForm
       ClientHeight = 223
       ClientWidth = 168
       TabOrder = 2
-      object FloatSpinEdit1: TFloatSpinEdit
+      object edtPosX: TFloatSpinEdit
         Left = 7
         Height = 31
         Top = 19
@@ -64,13 +64,13 @@ object MainForm: TMainForm
         Font.Pitch = fpVariable
         Font.Quality = fqDraft
         Increment = 1
-        MaxValue = 100
-        MinValue = 0
+        MaxValue = 999999
+        MinValue = -999999
         ParentFont = False
         TabOrder = 0
         Value = 0
       end
-      object FloatSpinEdit2: TFloatSpinEdit
+      object edtPosZ: TFloatSpinEdit
         Left = 7
         Height = 31
         Top = 83
@@ -81,13 +81,13 @@ object MainForm: TMainForm
         Font.Pitch = fpVariable
         Font.Quality = fqDraft
         Increment = 1
-        MaxValue = 100
-        MinValue = 0
+        MaxValue = 999999
+        MinValue = -999999
         ParentFont = False
         TabOrder = 1
         Value = 0
       end
-      object FloatSpinEdit3: TFloatSpinEdit
+      object edtPosY: TFloatSpinEdit
         Left = 7
         Height = 31
         Top = 51
@@ -98,13 +98,13 @@ object MainForm: TMainForm
         Font.Pitch = fpVariable
         Font.Quality = fqDraft
         Increment = 1
-        MaxValue = 100
-        MinValue = 0
+        MaxValue = 999999
+        MinValue = -999999
         ParentFont = False
         TabOrder = 2
         Value = 0
       end
-      object FloatSpinEdit4: TFloatSpinEdit
+      object edtDirX: TFloatSpinEdit
         Left = 95
         Height = 31
         Top = 19
@@ -115,13 +115,13 @@ object MainForm: TMainForm
         Font.Pitch = fpVariable
         Font.Quality = fqDraft
         Increment = 0.1
-        MaxValue = 100
-        MinValue = 0
+        MaxValue = 999999
+        MinValue = -999999
         ParentFont = False
         TabOrder = 3
         Value = 0
       end
-      object FloatSpinEdit5: TFloatSpinEdit
+      object edtDirY: TFloatSpinEdit
         Left = 95
         Height = 31
         Top = 51
@@ -132,13 +132,13 @@ object MainForm: TMainForm
         Font.Pitch = fpVariable
         Font.Quality = fqDraft
         Increment = 0.1
-        MaxValue = 100
-        MinValue = 0
+        MaxValue = 999999
+        MinValue = -999999
         ParentFont = False
         TabOrder = 4
         Value = 0
       end
-      object FloatSpinEdit6: TFloatSpinEdit
+      object edtDirZ: TFloatSpinEdit
         Left = 95
         Height = 31
         Top = 83
@@ -149,8 +149,8 @@ object MainForm: TMainForm
         Font.Pitch = fpVariable
         Font.Quality = fqDraft
         Increment = 0.1
-        MaxValue = 100
-        MinValue = 0
+        MaxValue = 999999
+        MinValue = -999999
         ParentFont = False
         TabOrder = 5
         Value = 0
@@ -179,7 +179,7 @@ object MainForm: TMainForm
         Caption = 'Upvector:'
         ParentColor = False
       end
-      object FloatSpinEdit7: TFloatSpinEdit
+      object edtUpVecAngle: TFloatSpinEdit
         Left = 98
         Height = 28
         Top = 123

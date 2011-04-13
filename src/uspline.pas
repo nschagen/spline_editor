@@ -52,11 +52,16 @@ type
 
   { TSpline }
 
+  TOnAddAnchorEvent = procedure (aAnchor: TSplineAnchor) of object;
+  TOnDeleteAnchorEvent = procedure (aAnchor: TSplineAnchor) of object;
+
   TSpline = class
   private
-    FIsClosed : Boolean;
-    FAnchors  : TList;
-    FSegments : TList;
+    FIsClosed       : Boolean;
+    FAnchors        : TList;
+    FSegments       : TList;
+    FOnAddAnchor    : TOnAddAnchorEvent;
+    FOnDeleteAnchor : TOnDeleteAnchorEvent;
     procedure CubicBezierInterpolation(CP1, CP2: TSplineAnchor; t: Single; var v: TVector3f);
     procedure SetIsClosed(const aValue: Boolean);
     function CalculateSplineSegmentLength(t0,t1: Single): Single;
@@ -71,6 +76,7 @@ type
     procedure InsertAnchor(I: Integer; aAnchor: TSplineAnchor);
     procedure DeleteAnchor(aAnchor: TSplineAnchor); overload;
     procedure DeleteAnchor(aIndex: Integer); overload;
+    function IndexOf(aAnchor: TSplineAnchor): Integer;
     procedure Clear;
     procedure CalculateTangentVectors;
 
@@ -80,7 +86,7 @@ type
     function GetCurveParameter(s: single): single;
     function CalculateLength: Single;
 
-    procedure ComputeSegments(aNodeCount: Integer);
+    procedure ComputeSegments(aNodeCount: Integer; aSplineLength: Single = 0);
     function GetSegment(aIndex: Integer): PSplineSegment;
     function GetSegmentCount(): Integer;
     procedure ClearSegments();
@@ -95,6 +101,9 @@ type
     property Segments[I: Integer]: PSplineSegment read GetSegment;
     property SegmentCount: Integer read GetSegmentCount;
     property IsClosed: Boolean   read FIsClosed write SetIsClosed;
+
+    property OnAddAnchor: TOnAddAnchorEvent read FOnAddAnchor write FOnAddAnchor;
+    property OnDeleteAnchor: TOnDeleteAnchorEvent read FOnDeleteAnchor write FOnDeleteAnchor;
   end;
 
   ESplineException = class(Exception);
@@ -229,8 +238,10 @@ constructor TSpline.Create;
 begin
   inherited Create;
 
-  FAnchors := TList.Create;
+  FAnchors  := TList.Create;
   FSegments := TList.Create;
+  FOnAddAnchor    := nil;
+  FOnDeleteAnchor := nil;
 
   SetIsClosed(False);
 end;
@@ -246,15 +257,18 @@ end;
 procedure TSpline.AddAnchor(aAnchor: TSplineAnchor);
 begin
   FAnchors.Add(aAnchor);
+  if Assigned(FOnAddAnchor) then FOnAddAnchor(aAnchor);
 end;
 
 procedure TSpline.InsertAnchor(I: Integer; aAnchor: TSplineAnchor);
 begin
   FAnchors.Insert(I, aAnchor);
+  if Assigned(FOnAddAnchor) then FOnAddAnchor(aAnchor);
 end;
 
 procedure TSpline.DeleteAnchor(aAnchor: TSplineAnchor);
 begin
+  if Assigned(FOnDeleteAnchor) then FOnDeleteAnchor(aAnchor);
   FAnchors.Remove(aAnchor);
   aAnchor.Free();
 end;
@@ -266,6 +280,11 @@ begin
   Anchor := Anchors[aIndex];
   if assigned(Anchor) then
     DeleteAnchor(Anchor);
+end;
+
+function TSpline.IndexOf(aAnchor: TSplineAnchor): Integer;
+begin
+  Result := FAnchors.IndexOf(aAnchor);
 end;
 
 procedure TSpline.CalculateTangentVectors;
@@ -464,7 +483,7 @@ begin
   end;
 end;
 
-procedure TSpline.ComputeSegments(aNodeCount: Integer);
+procedure TSpline.ComputeSegments(aNodeCount: Integer; aSplineLength: Single = 0);
 var
   I: Integer;
   len, lt:  Single;
@@ -472,8 +491,13 @@ var
   a, b, c: TVector3f;
   anchor: TSplineAnchor;
 begin
+  if AnchorCount < 2 then raise ESplineException.Create('Spline needs at least 2 anchors!');
+
   //Compute spline length once
-  len := CalculateLength();
+  if nasha_math.equals(aSplineLength, 0) then
+    len := CalculateLength()
+  else
+    len := aSplineLength;
 
   ClearSegments();
 

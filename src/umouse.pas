@@ -37,7 +37,17 @@ type
     property SplineModel: TSplineModel read FSplineModel write FSplineModel;
   end;
 
+const
+  //The maximal distance between the mouse position in view space and the spline segment center
+  //that will cause a new anchor to be inserted
+
+  //This number must first be multiplied by the view-height, to get this distance
+  //So it's the tolerance distance per pixel in height
+  INSERT_ANCHOR_TOLERANCE = 0.1;
+
 implementation
+
+uses uspline;
 
 { TMouseController }
 
@@ -51,16 +61,46 @@ begin
 end;
 
 procedure TMouseController.EditorMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+var
+  Segment: PSplineSegment;
+  distToSpline: Single;
 begin
+  SplineModel.SelectedAnchor := nil;
+
   if Button = mbLeft then
   begin
     //Left click...
-    if View.ShowTangents then
+
+    //did we click a handle? If so, move it!
+    FDragHandle := IsHandleClicked(Vec2i(X,Y));
+    if Assigned(FDragHandle) then
     begin
-      //did we click a handle? If so, move it!
-      FDragHandle := IsHandleClicked(Vec2i(X,Y));
-      if Assigned(FDragHandle) then
-        FOperation := doAnchor;
+      if FDragHandle is TSplineAnchorHandle then
+      begin
+
+        //Only select tangents when they are shown too!!
+        if (TSplineAnchorHandle(FDragHandle).HandleType = htAnchor) or View.ShowTangents then
+        begin
+          FOperation := doAnchor;
+
+          //Select the anchor that corresponds to this handle
+          SplineModel.SelectedAnchor := TSplineAnchorHandle(FDragHandle).Anchor;
+        end;
+      end;
+    end;
+
+    //Check if we clicked right next to the spline (will insert an anchor)
+
+    //Compute closest segment to mouse position in view space
+    Segment := SplineModel.GetClosestSegmentInViewPlane( View.ScreenToView(Vec2i(X,Y)), View.ViewPlane  );
+
+    //Determine distance between segment and mouse position in view space
+    distToSpline := vec2fLength( Vec2fSub( View.ScreenToView(Vec2i(X,Y)), View.WorldToView(Segment^.v_center)));
+
+    //If it is below our tolerance, insert point
+    if (distToSpline < INSERT_ANCHOR_TOLERANCE * View.ViewHeight) then
+    begin
+      beep;
     end;
   end
   else if Button = mbRight then

@@ -7,20 +7,21 @@ interface
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, ExtCtrls,
   Menus, StdCtrls, DbCtrls, Spin, ComCtrls, LCLType, types, usplineeditor,
-  BGRABitmap, BGRABitmapTypes, uspline, uview, usplinemodel, nasha_vectors, umouse;
+  BGRABitmap, BGRABitmapTypes, uspline, uview, usplinemodel, nasha_vectors, umouse,
+  uviewplane;
 
 type
 
   { TMainForm }
 
   TMainForm = class(TForm)
-    FloatSpinEdit1: TFloatSpinEdit;
-    FloatSpinEdit2: TFloatSpinEdit;
-    FloatSpinEdit3: TFloatSpinEdit;
-    FloatSpinEdit4: TFloatSpinEdit;
-    FloatSpinEdit5: TFloatSpinEdit;
-    FloatSpinEdit6: TFloatSpinEdit;
-    FloatSpinEdit7: TFloatSpinEdit;
+    edtPosX: TFloatSpinEdit;
+    edtPosZ: TFloatSpinEdit;
+    edtPosY: TFloatSpinEdit;
+    edtDirX: TFloatSpinEdit;
+    edtDirY: TFloatSpinEdit;
+    edtDirZ: TFloatSpinEdit;
+    edtUpVecAngle: TFloatSpinEdit;
     Label1: TLabel;
     Label2: TLabel;
     Label3: TLabel;
@@ -70,6 +71,9 @@ type
     procedure mnZoomInClick(Sender: TObject);
     procedure mnZoomOutClick(Sender: TObject);
     procedure SelectViewPlane(Sender: TObject);
+    procedure SelectAnchor(aModel: TSplineModel; aAnchor: TSplineAnchor);
+    procedure SplineChange(aModel: TSplineModel);
+    procedure AnchorChange(aModel: TSplineModel; aAnchor: TSplineAnchor);
   private
     { private declarations }
   public
@@ -104,31 +108,36 @@ end;
 
 procedure TMainForm.FormCreate(Sender: TObject);
 begin
-  //Create editor
-  View := TSplineEditorView.Create(ViewPaintBox);
-
-  MouseController           := TMouseController.Create();
-  ViewPaintBox.OnMouseDown  := @MouseController.EditorMouseDown;
-  ViewPaintBox.OnMouseMove  := @MouseController.EditorMouseMove;
-  ViewPaintBox.OnMouseUp    := @MouseController.EditorMouseUp;
-  ViewPaintBox.OnMouseEnter := @MouseController.EditorMouseEnter;
-  ViewPaintBox.OnMouseLeave := @MouseController.EditorMouseLeave;
-  ViewPaintBox.OnMouseWheel := @MouseController.EditorMouseWheel;
-
+  //Create spline
   Spline := TSpline.Create();
   Spline.IsClosed := True;
-
-  SplineModel := TSplineModel.Create();
-  SplineModel.Spline := Spline;
-
-  View.SplineModel := SplineModel;
-  MouseController.SplineModel := SplineModel;
-  MouseController.View := View;
-
   AddAnchor( Vec3f(-20, 0, -20), Vec3f(15, 0, -15) );
   AddAnchor( Vec3f(30, -3, -25), Vec3f(15, 0, 5) );
   AddAnchor( Vec3f(20, -5, 20), Vec3f(-15, 0, 15) );
   AddAnchor( Vec3f(-20, 2, 20), Vec3f(-15, 0, -15) );
+
+  //Create spline model, that wraps up the spline
+  SplineModel := TSplineModel.Create();
+  SplineModel.Spline := Spline;
+  SplineModel.OnSelectAnchor := @SelectAnchor;
+  SplineModel.OnSplineChange := @SplineChange;
+  SplineModel.OnAnchorChange := @AnchorChange;
+  SplineModel.ComputeSplineSegments();
+
+  //This object will draw the viewport
+  View := TSplineEditorView.Create(ViewPaintBox);
+  View.SplineModel := SplineModel;
+
+  //Let mouse controller handle any mouse input
+  MouseController             := TMouseController.Create();
+  MouseController.SplineModel := SplineModel;
+  MouseController.View        := View;
+  ViewPaintBox.OnMouseDown    := @MouseController.EditorMouseDown;
+  ViewPaintBox.OnMouseMove    := @MouseController.EditorMouseMove;
+  ViewPaintBox.OnMouseUp      := @MouseController.EditorMouseUp;
+  ViewPaintBox.OnMouseEnter   := @MouseController.EditorMouseEnter;
+  ViewPaintBox.OnMouseLeave   := @MouseController.EditorMouseLeave;
+  ViewPaintBox.OnMouseWheel   := @MouseController.EditorMouseWheel;
 end;
 
 procedure TMainForm.FormDestroy(Sender: TObject);
@@ -242,6 +251,75 @@ begin
   2:  View.ViewPlane := vpXZ;
   end;
   View.ReDraw();
+end;
+
+procedure TMainForm.SelectAnchor(aModel: TSplineModel; aAnchor: TSplineAnchor);
+begin
+  //Called when an anchor was clicked
+
+  //Select the right item corresponding to the Anchor index
+  if assigned(aAnchor) then
+  begin
+    AnchorList.ItemIndex := aModel.Spline.IndexOf(aAnchor);
+
+    edtPosX.Enabled := True;
+    edtPosY.Enabled := True;
+    edtPosZ.Enabled := True;
+    edtDirX.Enabled := True;
+    edtDirY.Enabled := True;
+    edtDirZ.Enabled := True;
+
+    edtPosX.Value := aAnchor.Position.x;
+    edtPosY.Value := aAnchor.Position.y;
+    edtPosZ.Value := aAnchor.Position.z;
+    edtDirX.Value := aAnchor.TangentVector.x;
+    edtDirY.Value := aAnchor.TangentVector.y;
+    edtDirZ.Value := aAnchor.TangentVector.z;
+  end else begin
+    AnchorList.ItemIndex := -1;
+
+    edtPosX.Enabled := False;
+    edtPosY.Enabled := False;
+    edtPosZ.Enabled := False;
+    edtDirX.Enabled := False;
+    edtDirY.Enabled := False;
+    edtDirZ.Enabled := False;
+
+    edtPosX.Value := 0.0;
+    edtPosY.Value := 0.0;
+    edtPosZ.Value := 0.0;
+    edtDirX.Value := 0.0;
+    edtDirY.Value := 0.0;
+    edtDirZ.Value := 0.0;
+  end;
+
+  View.ReDraw();
+end;
+
+procedure TMainForm.SplineChange(aModel: TSplineModel);
+var
+  I: Integer;
+begin
+  //Called when the spline has changed (added or removed an anchor)
+
+  AnchorList.Clear;
+  for I:=0 to aModel.Spline.AnchorCount -1 do
+  begin
+    AnchorList.Items.Add(Format('Anchor %d',[I]));
+  end;
+
+  View.ReDraw();
+end;
+
+procedure TMainForm.AnchorChange(aModel: TSplineModel; aAnchor: TSplineAnchor);
+begin
+  //Called when an anchor is manipulated
+  edtPosX.Value := aAnchor.Position.x;
+  edtPosY.Value := aAnchor.Position.y;
+  edtPosZ.Value := aAnchor.Position.z;
+  edtDirX.Value := aAnchor.TangentVector.x;
+  edtDirY.Value := aAnchor.TangentVector.y;
+  edtDirZ.Value := aAnchor.TangentVector.z;
 end;
 
 end.

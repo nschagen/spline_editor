@@ -6,10 +6,11 @@ interface
 
 uses
   Classes, SysUtils, Graphics, ExtCtrls, uspline,
-  nasha_vectors, nasha_primitives, BGRABitmap, BGRABitmapTypes, math, usplinemodel;
+  nasha_vectors, nasha_primitives, BGRABitmap, BGRABitmapTypes,
+  math, usplinemodel, uviewplane;
 
 type
-  TViewPlane = (vpXY, vpYZ, vpXZ);
+
 
   { Responsible for drawing the output onto the canvas }
 
@@ -69,8 +70,6 @@ type
     property ShowTangents: Boolean read FShowTangents write SetShowTangents;
     property ShowUpVectors: Boolean read FShowUpVectors write SetShowUpVectors;
   end;
-
-
 
 const
   //Define colors as constants here!!
@@ -217,23 +216,19 @@ begin
     storedSpline[I].x := pos.x;
     storedSpline[I].y := pos.y;
   end;
+
+  {SetLength(storedSpline, FSplineModel.Spline.SegmentCount);
+  for I:=0 to FSplineModel.Spline.SegmentCount -1 do
+  begin
+    pos := WorldToScreen(FSplineModel.Spline.Segments[I]^.v_pos);
+    storedSpline[I].x := pos.x;
+    storedSpline[I].y := pos.y;
+  end;}
   FScreenBitmap.DrawPolygonAntialias(storedSpline,c,2);
 
-  if FShowTangents then
-  begin
-    for I:=0 to FSplineModel.GetHandleCount()-1 do
-    begin
-      Handle := FSplineModel.GetHandle(I);
-      pos := WorldToScreen(Handle.GetPosition());
-      FScreenBitmap.Rectangle(Round(pos.x-5), Round(pos.y-5),
-                              Round(pos.x+5), Round(pos.y+5),BGRA(255,255,255,255), BGRA(0,0,255,192), dmLinearBlend);
-      Handle.Free();
-    end;
-
-    //Draw anchors
-    for I:=0 to FSplineModel.Spline.AnchorCount -1 do
-      DrawAnchor(FSplineModel.Spline.Anchors[I]);
-  end;
+  //Draw anchors
+  for I:=0 to FSplineModel.Spline.AnchorCount -1 do
+    DrawAnchor(FSplineModel.Spline.Anchors[I]);
 
   //Also draw axes in the bottom left corner
   DrawAxes();
@@ -283,11 +278,31 @@ end;
 
 procedure TSplineEditorView.DrawAnchor(aAnchor: TSplineAnchor);
 var
-  v1,v2: TVector2i;
+  t1,t2,a: TVector2i;
+  FillColor, BorderColor: TBGRAPixel;
 begin
-  v1 := WorldToScreen(VecAdd(aAnchor.Position, aAnchor.TangentVector));
-  v2 := WorldToScreen(VecSub(aAnchor.Position, aAnchor.TangentVector));
-  FScreenBitmap.DrawLineAntialias(v1.x,v1.y,v2.x,v2.y,BGRA(0,0,255,192),2);
+  if aAnchor = SplineModel.SelectedAnchor then
+  begin
+    BorderColor := BGRA(255,255,255,255);
+    FillColor   := BGRA(255,192,0,192);
+  end else begin
+    BorderColor := BGRA(255,255,255,255);
+    FillColor   := BGRA(0,0,255,192);
+  end;
+
+  a  := WorldToScreen(aAnchor.Position);
+  t1 := WorldToScreen(VecAdd(aAnchor.Position, aAnchor.TangentVector));
+  t2 := WorldToScreen(VecSub(aAnchor.Position, aAnchor.TangentVector));
+
+  FScreenBitmap.Rectangle(a.x-5,  a.y-5,  a.x+5,  a.y+5, BorderColor, FillColor, dmLinearBlend);
+
+  if FShowTangents then
+  begin
+    FScreenBitmap.Rectangle(t1.x-5, t1.y-5, t1.x+5, t1.y+5,BorderColor, FillColor, dmLinearBlend);
+    FScreenBitmap.Rectangle(t2.x-5, t2.y-5, t2.x+5, t2.y+5,BorderColor, FillColor, dmLinearBlend);
+
+    FScreenBitmap.DrawLineAntialias(t1.x,t1.y,t2.x,t2.y,FillColor,2);
+  end;
 end;
 
 procedure TSplineEditorView.Zoom(const aFactor: Single);
@@ -373,41 +388,12 @@ end;
 
 function TSplineEditorView.WorldToView(aVector: TVector3f): TVector2f;
 begin
-  case FViewPlane of
-  vpXY: begin
-          Result.x := aVector.x;
-          Result.y := -aVector.y;
-        end;
-  vpYZ: begin
-          Result.x := aVector.z;
-          Result.y := -aVector.y;
-        end;
-  vpXZ: begin
-          Result.x := aVector.x;
-          Result.y := aVector.z;
-        end;
-  end;
+  Result := ProjectOnViewPlane(aVector, FViewPlane);
 end;
 
 function TSplineEditorView.ViewToWorld(aVector: TVector2f): TVector3f;
 begin
-  case FViewPlane of
-  vpXY: begin
-          Result.x := aVector.x;
-          Result.y := -aVector.y;
-          Result.z := 0;
-        end;
-  vpYZ: begin
-          Result.x := 0;
-          Result.y := -aVector.y;
-          Result.z := aVector.x;
-        end;
-  vpXZ: begin
-          Result.x := aVector.x;
-          Result.y := 0;
-          Result.z := aVector.y;
-        end;
-  end;
+  Result := UnProjectFromViewPlane(aVector, FViewPlane);
 end;
 
 procedure TSplineEditorView.Resize(Sender: TObject);

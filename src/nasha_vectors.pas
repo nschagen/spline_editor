@@ -84,6 +84,7 @@ type
   function Vec2i(aVec: TVector2f): TVector2i; overload;
   function Vec2iAdd(const aV1, aV2: TVector2i): TVector2i;
   function Vec2iSub(const aV1, aV2: TVector2i): TVector2i;
+  function vec2iLength(const aVec: TVector2i): Single;
 
   //2D float vectors
 
@@ -94,6 +95,7 @@ type
   function vec2fScale(const aVec: TVector2f; const aXScale, aYScale: Single): TVector2f;
   function vec2fScaleFactor(const aVec: TVector2f; const aFactor: Single): TVector2f;
   function vec2fLength(const aVec: TVector2f): Single;
+  function vec2fLengthSqr(const aVec: TVector2f): Single;
   function vec2fNorm(const aVec: TVector2f): TVector2f;
   function vec2fDot(const aV1, aV2: TVector2f): Single;
   function Vec2fNeg(const aVec: TVector2f): TVector2f;
@@ -162,6 +164,11 @@ begin
   Result.y := aV1.y - aV2.y;
 end;
 
+function vec2iLength(const aVec: TVector2i): Single;
+begin
+  Result := Sqrt(aVec.X*aVec.X + aVec.Y*aVec.Y);
+end;
+
 //2D Float vectors
 
 function Vec2f(x, y: Single): TVector2f;
@@ -203,6 +210,11 @@ end;
 function vec2fLength(const aVec: TVector2f): Single;
 begin
   Result := Sqrt(aVec.X*aVec.X + aVec.Y*aVec.Y);
+end;
+
+function vec2fLengthSqr(const aVec: TVector2f): Single;
+begin
+  Result := aVec.X*aVec.X + aVec.Y*aVec.Y;
 end;
 
 function vec2fNorm(const aVec: TVector2f): TVector2f;
