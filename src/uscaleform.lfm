@@ -1,7 +1,7 @@
 object ScaleForm: TScaleForm
-  Left = 594
+  Left = 290
   Height = 273
-  Top = 197
+  Top = 193
   Width = 217
   BorderIcons = [biSystemMenu]
   Caption = 'Scale Spline'
@@ -21,8 +21,8 @@ object ScaleForm: TScaleForm
     object edtY: TFloatSpinEdit
       Left = 81
       Height = 28
-      Top = 110
-      Width = 108
+      Top = 142
+      Width = 105
       Increment = 0.1
       MaxValue = 100
       MinValue = 0
@@ -32,7 +32,7 @@ object ScaleForm: TScaleForm
     object edtX: TFloatSpinEdit
       Left = 81
       Height = 28
-      Top = 142
+      Top = 110
       Width = 105
       Increment = 0.1
       MaxValue = 100

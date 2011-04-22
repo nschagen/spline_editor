@@ -43,8 +43,8 @@ const
 
   //This number must first be multiplied by the view-height, to get this distance
   //So it's the tolerance distance per pixel in height
-  INSERT_ANCHOR_TOLERANCE = 0.1;
-
+  //INSERT_ANCHOR_TOLERANCE = 0.1;
+  INSERT_ANCHOR_TOLERANCE = 8;
 implementation
 
 uses uspline;
@@ -62,14 +62,16 @@ end;
 
 procedure TMouseController.EditorMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 var
-  Segment: PSplineSegment;
+  Segment:      PSplineSegment;
   distToSpline: Single;
+  pos:          TVector2i;
+  I:            Integer;
+  NewAnchor:    TSplineAnchor;
 begin
-  SplineModel.SelectedAnchor := nil;
-
   if Button = mbLeft then
   begin
-    //Left click...
+    //Left click...  deselect first
+    SplineModel.SelectedAnchor := nil;
 
     //did we click a handle? If so, move it!
     FDragHandle := IsHandleClicked(Vec2i(X,Y));
@@ -90,9 +92,27 @@ begin
     end;
 
     //Check if we clicked right next to the spline (will insert an anchor)
+    for I:=0 to SplineModel.Spline.AnchorCount -1 do
+    begin
+      Segment := FSplineModel.Spline.GetSegment( I*2 + 1 );
+      if Assigned(Segment) then
+      begin
+        pos := View.WorldToScreen(Segment^.v_pos);
+        if vec2fLength( Vec2fSub(Vec2f(pos), Vec2f(X,Y)) ) < INSERT_ANCHOR_TOLERANCE then
+        begin
+          NewAnchor := TSplineAnchor.Create(FSplineModel.Spline);
+          NewAnchor.Position := Segment^.v_pos;
+          NewAnchor.TangentVector := vecScaleFactor(vecSub( Segment^.v_center, Segment^.v_pos ), 0.5);
+          NewAnchor.UpVector := vec3f(0,1,0);
+          FSplineModel.Spline.InsertAnchor( FSplineModel.Spline.IndexOf(Segment^.NextAnchor),
+                                            NewAnchor);
+        end;
+      end;
+    end;
+
 
     //Compute closest segment to mouse position in view space
-    Segment := SplineModel.GetClosestSegmentInViewPlane( View.ScreenToView(Vec2i(X,Y)), View.ViewPlane  );
+    {Segment := SplineModel.GetClosestSegmentInViewPlane( View.ScreenToView(Vec2i(X,Y)), View.ViewPlane  );
 
     //Determine distance between segment and mouse position in view space
     distToSpline := vec2fLength( Vec2fSub( View.ScreenToView(Vec2i(X,Y)), View.WorldToView(Segment^.v_center)));
@@ -101,7 +121,7 @@ begin
     if (distToSpline < INSERT_ANCHOR_TOLERANCE * View.ViewHeight) then
     begin
       beep;
-    end;
+    end;}
   end
   else if Button = mbRight then
   begin

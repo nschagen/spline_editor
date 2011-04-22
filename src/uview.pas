@@ -200,6 +200,7 @@ procedure TSplineEditorView.DrawSpline();
 var
   c: TBGRAPixel;
   SegmentCount, I: Integer;
+  Segment:  PSplineSegment;
   storedSpline: array of TPointF;
   v: TVector3f;
   pos: TVector2i;
@@ -229,6 +230,18 @@ begin
   //Draw anchors
   for I:=0 to FSplineModel.Spline.AnchorCount -1 do
     DrawAnchor(FSplineModel.Spline.Anchors[I]);
+
+  //Draw "insert anchor" points
+  for I:=0 to FSplineModel.Spline.AnchorCount -1 do
+  begin
+    Segment := FSplineModel.Spline.GetSegment( I*2 + 1 );
+    if Assigned(Segment) then
+    begin
+      pos := WorldToScreen(Segment^.v_pos);
+      FScreenBitmap.Rectangle(pos.x-2, pos.y-8, pos.x+2, pos.y+8, BGRA(255,0,0,255), BGRA(255,0,0,128), dmLinearBlend);
+      FScreenBitmap.Rectangle(pos.x-8, pos.y-2, pos.x+8, pos.y+2, BGRA(255,0,0,255), BGRA(255,0,0,128), dmLinearBlend);
+    end;
+  end;
 
   //Also draw axes in the bottom left corner
   DrawAxes();

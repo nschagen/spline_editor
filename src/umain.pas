@@ -55,8 +55,10 @@ type
     Splitter1: TSplitter;
     Splitter2: TSplitter;
     StatusBar1: TStatusBar;
+    procedure AnchorListClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
+    procedure FormKeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure mnAboutClick(Sender: TObject);
     procedure mnCloseClick(Sender: TObject);
     procedure mnEditClick(Sender: TObject);
@@ -138,6 +140,9 @@ begin
   ViewPaintBox.OnMouseEnter   := @MouseController.EditorMouseEnter;
   ViewPaintBox.OnMouseLeave   := @MouseController.EditorMouseLeave;
   ViewPaintBox.OnMouseWheel   := @MouseController.EditorMouseWheel;
+
+  //Make sure the spline anchors are visible in anchorList
+  SplineChange(SplineModel);
 end;
 
 procedure TMainForm.FormDestroy(Sender: TObject);
@@ -146,6 +151,17 @@ begin
   View.Free();
   Spline.Free();
   SplineModel.Free();
+end;
+
+procedure TMainForm.FormKeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
+begin
+  if Key = VK_DELETE then
+  begin
+    SplineModel.Spline.DeleteAnchor( SplineModel.SelectedAnchor );
+    SplineModel.ComputeSplineSegments();
+
+    View.ReDraw();
+  end;
 end;
 
 procedure TMainForm.mnAboutClick(Sender: TObject);
@@ -320,6 +336,11 @@ begin
   edtDirX.Value := aAnchor.TangentVector.x;
   edtDirY.Value := aAnchor.TangentVector.y;
   edtDirZ.Value := aAnchor.TangentVector.z;
+end;
+
+procedure TMainForm.AnchorListClick(Sender: TObject);
+begin
+  SplineModel.SelectedAnchor := SplineModel.Spline.Anchors[AnchorList.ItemIndex];
 end;
 
 end.

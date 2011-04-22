@@ -84,8 +84,6 @@ type
     property HandleType: TSplineAnchorHandleType read FType;
   end;
 
-const
-  SPLINE_SEGMENT_COUNT = 100;
 implementation
 
 { TSplineModel }
@@ -151,7 +149,7 @@ begin
   //Recomputes spline segments
   //Each segment has a fixed length
   SplineLength := Spline.CalculateLength();
-  Spline.ComputeSegments(SPLINE_SEGMENT_COUNT, SplineLength);
+  Spline.ComputeSegments(Spline.AnchorCount * 2, SplineLength);
 end;
 
 procedure TSplineModel.SetSelectedAnchor(const AValue: TSplineAnchor);

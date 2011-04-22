@@ -1,14 +1,16 @@
 object MainForm: TMainForm
-  Left = 279
+  Left = 278
   Height = 518
-  Top = 156
+  Top = 165
   Width = 793
   Caption = 'Spline Editor'
   ClientHeight = 494
   ClientWidth = 793
+  KeyPreview = True
   Menu = MainMenu1
   OnCreate = FormCreate
   OnDestroy = FormDestroy
+  OnKeyUp = FormKeyUp
   LCLVersion = '0.9.30'
   object ViewPaintBox: TPaintBox
     Left = 176
@@ -33,6 +35,7 @@ object MainForm: TMainForm
       Width = 168
       Align = alTop
       ItemHeight = 0
+      OnClick = AnchorListClick
       TabOrder = 0
     end
     object Splitter2: TSplitter
