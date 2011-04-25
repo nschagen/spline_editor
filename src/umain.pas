@@ -76,6 +76,7 @@ type
     procedure SelectAnchor(aModel: TSplineModel; aAnchor: TSplineAnchor);
     procedure SplineChange(aModel: TSplineModel);
     procedure AnchorChange(aModel: TSplineModel; aAnchor: TSplineAnchor);
+    procedure ChangeAnchorProperty(Sender: TObject);
   private
     { private declarations }
   public
@@ -336,6 +337,28 @@ begin
   edtDirX.Value := aAnchor.TangentVector.x;
   edtDirY.Value := aAnchor.TangentVector.y;
   edtDirZ.Value := aAnchor.TangentVector.z;
+end;
+
+procedure TMainForm.ChangeAnchorProperty(Sender: TObject);
+var
+  Anchor: TSplineAnchor;
+  v:      TVector3f;
+begin
+  if (not TWinControl(Sender).Focused) then Exit;
+
+  Anchor := SplineModel.SelectedAnchor;
+  if assigned(Anchor) then
+  begin
+    Anchor.Position      := Vec3f(edtPosX.Value,
+                                 edtPosY.Value,
+                                 edtPosZ.Value);
+    Anchor.TangentVector := Vec3f(edtDirX.Value,
+                                 edtDirY.Value,
+                                 edtDirZ.Value);
+  end;
+
+  //Update view to reflect new situation
+  View.ReDraw();
 end;
 
 procedure TMainForm.AnchorListClick(Sender: TObject);

@@ -69,6 +69,7 @@ object MainForm: TMainForm
         Increment = 1
         MaxValue = 999999
         MinValue = -999999
+        OnChange = ChangeAnchorProperty
         ParentFont = False
         TabOrder = 0
         Value = 0
@@ -86,6 +87,7 @@ object MainForm: TMainForm
         Increment = 1
         MaxValue = 999999
         MinValue = -999999
+        OnChange = ChangeAnchorProperty
         ParentFont = False
         TabOrder = 1
         Value = 0
@@ -103,6 +105,7 @@ object MainForm: TMainForm
         Increment = 1
         MaxValue = 999999
         MinValue = -999999
+        OnChange = ChangeAnchorProperty
         ParentFont = False
         TabOrder = 2
         Value = 0
@@ -120,6 +123,7 @@ object MainForm: TMainForm
         Increment = 0.1
         MaxValue = 999999
         MinValue = -999999
+        OnChange = ChangeAnchorProperty
         ParentFont = False
         TabOrder = 3
         Value = 0
@@ -137,6 +141,7 @@ object MainForm: TMainForm
         Increment = 0.1
         MaxValue = 999999
         MinValue = -999999
+        OnChange = ChangeAnchorProperty
         ParentFont = False
         TabOrder = 4
         Value = 0
@@ -154,6 +159,7 @@ object MainForm: TMainForm
         Increment = 0.1
         MaxValue = 999999
         MinValue = -999999
+        OnChange = ChangeAnchorProperty
         ParentFont = False
         TabOrder = 5
         Value = 0

@@ -67,6 +67,7 @@ var
   pos:          TVector2i;
   I:            Integer;
   NewAnchor:    TSplineAnchor;
+  v:            TVector3f;
 begin
   if Button = mbLeft then
   begin
@@ -94,17 +95,16 @@ begin
     //Check if we clicked right next to the spline (will insert an anchor)
     for I:=0 to SplineModel.Spline.AnchorCount -1 do
     begin
-      Segment := FSplineModel.Spline.GetSegment( I*2 + 1 );
+      v := FSplineModel.Spline.GetPosition( (I+0.5)/SplineModel.Spline.AnchorCount );
       if Assigned(Segment) then
       begin
-        pos := View.WorldToScreen(Segment^.v_pos);
-        if vec2fLength( Vec2fSub(Vec2f(pos), Vec2f(X,Y)) ) < INSERT_ANCHOR_TOLERANCE then
+        if vec2fLength( Vec2fSub(Vec2f(View.WorldToScreen(v)), Vec2f(X,Y)) ) < INSERT_ANCHOR_TOLERANCE then
         begin
           NewAnchor := TSplineAnchor.Create(FSplineModel.Spline);
-          NewAnchor.Position := Segment^.v_pos;
-          NewAnchor.TangentVector := vecScaleFactor(vecSub( Segment^.v_center, Segment^.v_pos ), 0.5);
+          NewAnchor.Position := v;
+          NewAnchor.TangentVector := VecScaleFactor( FSplineModel.Spline.GetDirection((I+0.5)/SplineModel.Spline.AnchorCount), 10 );
           NewAnchor.UpVector := vec3f(0,1,0);
-          FSplineModel.Spline.InsertAnchor( FSplineModel.Spline.IndexOf(Segment^.NextAnchor),
+          FSplineModel.Spline.InsertAnchor( I+1 mod SplineModel.Spline.AnchorCount,
                                             NewAnchor);
         end;
       end;

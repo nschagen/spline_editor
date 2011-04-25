@@ -234,10 +234,10 @@ begin
   //Draw "insert anchor" points
   for I:=0 to FSplineModel.Spline.AnchorCount -1 do
   begin
-    Segment := FSplineModel.Spline.GetSegment( I*2 + 1 );
+    v := FSplineModel.Spline.GetPosition( (I+0.5)/SplineModel.Spline.AnchorCount );
     if Assigned(Segment) then
     begin
-      pos := WorldToScreen(Segment^.v_pos);
+      pos := WorldToScreen(v);
       FScreenBitmap.Rectangle(pos.x-2, pos.y-8, pos.x+2, pos.y+8, BGRA(255,0,0,255), BGRA(255,0,0,128), dmLinearBlend);
       FScreenBitmap.Rectangle(pos.x-8, pos.y-2, pos.x+8, pos.y+2, BGRA(255,0,0,255), BGRA(255,0,0,128), dmLinearBlend);
     end;
