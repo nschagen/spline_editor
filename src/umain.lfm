@@ -330,6 +330,8 @@ object MainForm: TMainForm
     top = 12
   end
   object SaveSplineDlg: TSaveDialog
+    DefaultExt = '.spline'
+    Filter = 'XML Spline files|*.spline'
     left = 96
     top = 12
   end

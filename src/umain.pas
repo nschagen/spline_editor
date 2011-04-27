@@ -8,7 +8,7 @@ uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, ExtCtrls,
   Menus, StdCtrls, DbCtrls, Spin, ComCtrls, LCLType, types, usplineeditor,
   BGRABitmap, BGRABitmapTypes, uspline, uview, usplinemodel, nasha_vectors, umouse,
-  uviewplane;
+  uviewplane, usplinexml;
 
 type
 
@@ -80,7 +80,7 @@ type
   private
     { private declarations }
   public
-    { public declarations }
+    function SaveSpline(): Boolean;
   end; 
 
 var
@@ -96,28 +96,35 @@ uses umoveform, uscaleform;
 
 {$R *.lfm}
 
-{ TMainForm }
+function InitSpline(): TSpline;
 
-procedure AddAnchor(Pos, Tangent: TVector3f);
-var
-  Anchor: TSplineAnchor;
-begin
-  Anchor := TSplineAnchor.Create(Spline);
-  Anchor.Position      := Pos;
-  Anchor.TangentVector := Tangent;
-  Anchor.UpVector      := Vec3f(0,0,1);
-  Spline.AddAnchor(Anchor);
-end;
+  procedure AddAnchor(Pos, Tangent: TVector3f);
+  var
+    Anchor: TSplineAnchor;
+  begin
+    Anchor := TSplineAnchor.Create(Spline);
+    Anchor.Position      := Pos;
+    Anchor.TangentVector := Tangent;
+    Anchor.UpVector      := Vec3f(0,0,1);
+    Result.AddAnchor(Anchor);
+  end;
 
-procedure TMainForm.FormCreate(Sender: TObject);
 begin
   //Create spline
-  Spline := TSpline.Create();
-  Spline.IsClosed := True;
+  Result := TSpline.Create();
+  Result.IsClosed := True;
   AddAnchor( Vec3f(-20, 0, -20), Vec3f(15, 0, -15) );
   AddAnchor( Vec3f(30, -3, -25), Vec3f(15, 0, 5) );
   AddAnchor( Vec3f(20, -5, 20), Vec3f(-15, 0, 15) );
   AddAnchor( Vec3f(-20, 2, 20), Vec3f(-15, 0, -15) );
+end;
+
+{ TMainForm }
+
+procedure TMainForm.FormCreate(Sender: TObject);
+begin
+  //Create spline
+  Spline := InitSpline();
 
   //Create spline model, that wraps up the spline
   SplineModel := TSplineModel.Create();
@@ -174,11 +181,13 @@ procedure TMainForm.mnNewClick(Sender: TObject);
 begin
   //Create new spline
   if (Application.MessageBox('Save changes?','New Spline',MB_YESNO) = IDYES) then
-  begin
+    if not SaveSpline() then
+      Exit; //Abort when the user cancelled the save dialog
 
-  end else begin
-
-  end;
+  //Destroy spline and create new one
+  Spline.Free();
+  Spline := InitSpline();
+  SplineModel.Spline := Spline;
 end;
 
 procedure TMainForm.mnCloseClick(Sender: TObject);
@@ -198,10 +207,30 @@ begin
 
 end;
 
+function TMainForm.SaveSpline(): Boolean;
+var
+  Saver: TSplineSaver;
+begin
+  Result := False;
+  if SplineModel.Filename = '' then
+    if SaveSplineDlg.Execute() then
+      SplineModel.Filename := SaveSplineDlg.FileName
+    else
+      Exit; //no file name given.. abort!
+
+  Saver := TSplineSaver.Create();
+  try
+    Saver.SaveToFile( Spline, SplineModel.Filename );
+    Result := True;
+  finally
+    Saver.Free();
+  end;
+end;
+
 procedure TMainForm.mnSaveClick(Sender: TObject);
 begin
   //Save spline to file
-
+  SaveSpline();
 end;
 
 procedure TMainForm.mnMoveSplineClick(Sender: TObject);

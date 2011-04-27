@@ -22,6 +22,7 @@ type
 
   TSplineModel = class
   private
+    FFilename:       String;
     FSpline:         TSpline;
     FSelectedAnchor: TSplineAnchor;
     FOnSelectAnchor: TOnSelectAnchorEvent;
@@ -49,6 +50,7 @@ type
     function GetClosestSegmentInViewPlane(aViewVec: TVector2f; aViewPlane: TViewPlane): PSplineSegment;
 
     property Spline: TSpline read FSpline write SetSpline;
+    property FileName: String read FFilename write FFilename;
     property Updating: Boolean read FUpdating write SetUpdating;
     property SelectedAnchor: TSplineAnchor read FSelectedAnchor write SetSelectedAnchor;
     property OnSelectAnchor: TOnSelectAnchorEvent read FOnSelectAnchor write FOnSelectAnchor;
