@@ -5,7 +5,7 @@ unit usplinexml;
 interface
 
 uses
-  Classes, SysUtils, uspline, DOM, XMLWrite;
+  Classes, SysUtils, uspline, DOM, XMLWrite, XMLRead, nasha_vectors;
 
 type
 
@@ -13,7 +13,6 @@ type
 
   TSplineLoader = class
   public
-    constructor Create();
     procedure LoadFromFile(aSpline: TSpline; aFileName: String);
   end;
 
@@ -21,18 +20,12 @@ type
 
   TSplineSaver = class
   public
-    constructor Create();
     procedure SaveToFile(aSpline: TSpline; aFileName: String);
   end;
 
 implementation
 
 { TSplineSaver }
-
-constructor TSplineSaver.Create();
-begin
-
-end;
 
 procedure TSplineSaver.SaveToFile(aSpline: TSpline; aFileName: String);
 var
@@ -97,18 +90,51 @@ end;
 
 { TSplineLoader }
 
-constructor TSplineLoader.Create();
-begin
-
-end;
-
 procedure TSplineLoader.LoadFromFile(aSpline: TSpline; aFileName: String);
 var
   Doc: TXMLDocument;
-  Root: TDOMNode;
+  Anchor: TSplineAnchor;
+  Root, AnchorNode, Position, Tangent, UpVector: TDOMNode;
+  v: TVector3f;
 begin
   try
+    //Remove all anchors
+    aSpline.Clear();
+
+    //Parse XML file
     Doc := TXMLDocument.Create();
+    ReadXMLFile(Doc, aFileName);
+    try
+      AnchorNode := Doc.DocumentElement.FirstChild;
+      while Assigned(AnchorNode) do
+      begin
+        Anchor := TSplineAnchor.Create(aSpline);
+        Position := AnchorNode.FindNode('Position');
+        v.x := StrToFloat(TDOMElement(Position).GetAttribute('x'));
+        v.y := StrToFloat(TDOMElement(Position).GetAttribute('y'));
+        v.z := StrToFloat(TDOMElement(Position).GetAttribute('z'));
+        Anchor.Position := v;
+
+        Tangent := AnchorNode.FindNode('Tangent');
+        v.x := StrToFloat(TDOMElement(Tangent).GetAttribute('x'));
+        v.y := StrToFloat(TDOMElement(Tangent).GetAttribute('y'));
+        v.z := StrToFloat(TDOMElement(Tangent).GetAttribute('z'));
+        Anchor.TangentVector := v;
+
+        Upvector := AnchorNode.FindNode('Upvector');
+        v.x := StrToFloat(TDOMElement(Upvector).GetAttribute('x'));
+        v.y := StrToFloat(TDOMElement(Upvector).GetAttribute('y'));
+        v.z := StrToFloat(TDOMElement(Upvector).GetAttribute('z'));
+        Anchor.UpVector := v;
+
+        aSpline.AddAnchor(Anchor);
+        AnchorNode := AnchorNode.NextSibling;
+      end;
+    except
+      on E: Exception do
+        raise Exception.Create('Failed parsing Spline file: '+E.Message);
+    end;
+
   finally
     Doc.Free();
   end;

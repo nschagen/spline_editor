@@ -88,40 +88,32 @@ begin
 
           //Select the anchor that corresponds to this handle
           SplineModel.SelectedAnchor := TSplineAnchorHandle(FDragHandle).Anchor;
+
+          //We are updating the spline... ignore events until done
+          SplineModel.Updating := True;
         end;
       end;
-    end;
+    end else begin
 
-    //Check if we clicked right next to the spline (will insert an anchor)
-    for I:=0 to SplineModel.Spline.AnchorCount -1 do
-    begin
-      v := FSplineModel.Spline.GetPosition( (I+0.5)/SplineModel.Spline.AnchorCount );
-      if Assigned(Segment) then
+      //Check if we clicked right next to the spline (will insert an anchor)
+      for I:=0 to SplineModel.Spline.AnchorCount -1 do
       begin
-        if vec2fLength( Vec2fSub(Vec2f(View.WorldToScreen(v)), Vec2f(X,Y)) ) < INSERT_ANCHOR_TOLERANCE then
+        v := FSplineModel.Spline.GetPosition( (I+0.5)/SplineModel.Spline.AnchorCount );
+        if Assigned(Segment) then
         begin
-          NewAnchor := TSplineAnchor.Create(FSplineModel.Spline);
-          NewAnchor.Position := v;
-          NewAnchor.TangentVector := VecScaleFactor( FSplineModel.Spline.GetDirection((I+0.5)/SplineModel.Spline.AnchorCount), 10 );
-          NewAnchor.UpVector := vec3f(0,1,0);
-          FSplineModel.Spline.InsertAnchor( I+1 mod SplineModel.Spline.AnchorCount,
-                                            NewAnchor);
+          if vec2fLength( Vec2fSub(Vec2f(View.WorldToScreen(v)), Vec2f(X,Y)) ) < INSERT_ANCHOR_TOLERANCE then
+          begin
+            NewAnchor := TSplineAnchor.Create(FSplineModel.Spline);
+            NewAnchor.Position := v;
+            NewAnchor.TangentVector := VecScaleFactor( FSplineModel.Spline.GetDirection((I+0.5)/SplineModel.Spline.AnchorCount), 10 );
+            NewAnchor.UpVector := vec3f(0,1,0);
+            FSplineModel.Spline.InsertAnchor( I+1 mod SplineModel.Spline.AnchorCount,
+                                              NewAnchor);
+          end;
         end;
       end;
+
     end;
-
-
-    //Compute closest segment to mouse position in view space
-    {Segment := SplineModel.GetClosestSegmentInViewPlane( View.ScreenToView(Vec2i(X,Y)), View.ViewPlane  );
-
-    //Determine distance between segment and mouse position in view space
-    distToSpline := vec2fLength( Vec2fSub( View.ScreenToView(Vec2i(X,Y)), View.WorldToView(Segment^.v_center)));
-
-    //If it is below our tolerance, insert point
-    if (distToSpline < INSERT_ANCHOR_TOLERANCE * View.ViewHeight) then
-    begin
-      beep;
-    end;}
   end
   else if Button = mbRight then
   begin
@@ -169,11 +161,9 @@ end;
 
 procedure TMouseController.EditorMouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 begin
-  case FOperation of
-    doMoveView: begin
+  //We are done updating... now process OnSplineChanged event
+  SplineModel.Updating := False;
 
-              end;
-  end;
   FOperation := doNone;
 end;
 

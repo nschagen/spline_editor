@@ -23,6 +23,7 @@ type
   TSplineModel = class
   private
     FFilename:       String;
+    FChangesSaved:   Boolean;
     FSpline:         TSpline;
     FSelectedAnchor: TSplineAnchor;
     FOnSelectAnchor: TOnSelectAnchorEvent;
@@ -46,11 +47,11 @@ type
     procedure Scale(aFactors: TVector3f);
     procedure Move(aDisplacement: TVector3f);
     function getAABB(): TnaAABBf;
-    procedure ComputeSplineSegments();
     function GetClosestSegmentInViewPlane(aViewVec: TVector2f; aViewPlane: TViewPlane): PSplineSegment;
 
     property Spline: TSpline read FSpline write SetSpline;
     property FileName: String read FFilename write FFilename;
+    property ChangesSaved: Boolean read FChangesSaved write FChangesSaved;
     property Updating: Boolean read FUpdating write SetUpdating;
     property SelectedAnchor: TSplineAnchor read FSelectedAnchor write SetSelectedAnchor;
     property OnSelectAnchor: TOnSelectAnchorEvent read FOnSelectAnchor write FOnSelectAnchor;
@@ -132,26 +133,22 @@ end;
 procedure TSplineModel.SetUpdating(const AValue: Boolean);
 begin
   //When we are done with updating... update the spline
-  if not AValue and FUpdating then
+  if (not AValue) and FUpdating then
+  begin
+    FUpdating := False;
     SplineChanged();
+  end;
 
   FUpdating := AValue;
 end;
 
 procedure TSplineModel.SplineChanged();
 begin
-  ComputeSplineSegments();
-  if Assigned(FOnSplineChange) then FOnSplineChange(Self);
-end;
+  //Do not process changes while we are updating
+  if FUpdating then Exit;
 
-procedure TSplineModel.ComputeSplineSegments();
-var
-  SplineLength: Single;
-begin
-  //Recomputes spline segments
-  //Each segment has a fixed length
-  //SplineLength := Spline.CalculateLength();
-  //Spline.ComputeSegments(Spline.AnchorCount * 2, SplineLength);
+  FChangesSaved := False;
+  if Assigned(FOnSplineChange) then FOnSplineChange(Self);
 end;
 
 procedure TSplineModel.SetSelectedAnchor(const AValue: TSplineAnchor);
@@ -224,13 +221,15 @@ procedure TSplineModel.Scale(aFactors: TVector3f);
 var
   I: Integer;
 begin
+  Updating := True;
+
   for I:=0 to Spline.AnchorCount-1 do
   begin
     Spline.Anchors[I].Position      := vecScale(Spline.Anchors[I].Position, aFactors);
     Spline.Anchors[I].TangentVector := vecScale(Spline.Anchors[I].TangentVector, aFactors);
   end;
 
-  ComputeSplineSegments();
+  Updating := False;
 end;
 
 procedure TSplineModel.Move(aDisplacement: TVector3f);
@@ -238,12 +237,14 @@ var
   I: Integer;
   Anchor: TSplineAnchor;
 begin
+  Updating := True;
+
   for I:=0 to Spline.AnchorCount-1 do
   begin
     Spline.Anchors[I].Position := vecAdd(Spline.Anchors[I].Position, aDisplacement);
   end;
 
-  ComputeSplineSegments();
+  Updating := False;
 end;
 
 { TSplineAnchorHandle }
@@ -272,7 +273,8 @@ begin
     htTangent2:   FAnchor.TangentVector := vecNegate(vecSub(AValue, FAnchor.Position));
   end;
 
-  FSplineModel.ComputeSplineSegments();
+  //Fire OnSplineChange and OnAnchorChange events
+  FSplineModel.SplineChanged();
   if Assigned(FSplineModel.OnAnchorChange) then
     FSplineModel.OnAnchorChange(FSplineModel, FAnchor);
 end;

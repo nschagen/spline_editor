@@ -54,14 +54,12 @@ type
     SaveSplineDlg: TSaveDialog;
     Splitter1: TSplitter;
     Splitter2: TSplitter;
-    StatusBar1: TStatusBar;
     procedure AnchorListClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure FormKeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure mnAboutClick(Sender: TObject);
     procedure mnCloseClick(Sender: TObject);
-    procedure mnEditClick(Sender: TObject);
     procedure mnMoveSplineClick(Sender: TObject);
     procedure mnNewClick(Sender: TObject);
     procedure mnOpenClick(Sender: TObject);
@@ -96,7 +94,7 @@ uses umoveform, uscaleform;
 
 {$R *.lfm}
 
-function InitSpline(): TSpline;
+procedure InitSpline(aSpline: TSpline);
 
   procedure AddAnchor(Pos, Tangent: TVector3f);
   var
@@ -106,17 +104,17 @@ function InitSpline(): TSpline;
     Anchor.Position      := Pos;
     Anchor.TangentVector := Tangent;
     Anchor.UpVector      := Vec3f(0,0,1);
-    Result.AddAnchor(Anchor);
+    aSpline.AddAnchor(Anchor);
   end;
 
 begin
   //Create spline
-  Result := TSpline.Create();
-  Result.IsClosed := True;
-  AddAnchor( Vec3f(-20, 0, -20), Vec3f(15, 0, -15) );
-  AddAnchor( Vec3f(30, -3, -25), Vec3f(15, 0, 5) );
-  AddAnchor( Vec3f(20, -5, 20), Vec3f(-15, 0, 15) );
-  AddAnchor( Vec3f(-20, 2, 20), Vec3f(-15, 0, -15) );
+  aSpline.Clear();
+
+  AddAnchor( Vec3f(-20, 0, -20), Vec3f(12, 0, -12) );
+  AddAnchor( Vec3f(20,  0, -20), Vec3f(12, 0, 12) );
+  AddAnchor( Vec3f(20,  0, 20), Vec3f(-12, 0, 12) );
+  AddAnchor( Vec3f(-20, 0, 20), Vec3f(-12, 0, -12) );
 end;
 
 { TMainForm }
@@ -124,7 +122,9 @@ end;
 procedure TMainForm.FormCreate(Sender: TObject);
 begin
   //Create spline
-  Spline := InitSpline();
+  Spline := TSpline.Create();
+  Spline.IsClosed := True;
+  InitSpline(Spline);
 
   //Create spline model, that wraps up the spline
   SplineModel := TSplineModel.Create();
@@ -132,7 +132,7 @@ begin
   SplineModel.OnSelectAnchor := @SelectAnchor;
   SplineModel.OnSplineChange := @SplineChange;
   SplineModel.OnAnchorChange := @AnchorChange;
-  SplineModel.ComputeSplineSegments();
+  SplineModel.ChangesSaved := True;
 
   //This object will draw the viewport
   View := TSplineEditorView.Create(ViewPaintBox);
@@ -166,7 +166,6 @@ begin
   if Key = VK_DELETE then
   begin
     SplineModel.Spline.DeleteAnchor( SplineModel.SelectedAnchor );
-    SplineModel.ComputeSplineSegments();
 
     View.ReDraw();
   end;
@@ -180,31 +179,50 @@ end;
 procedure TMainForm.mnNewClick(Sender: TObject);
 begin
   //Create new spline
-  if (Application.MessageBox('Save changes?','New Spline',MB_YESNO) = IDYES) then
-    if not SaveSpline() then
-      Exit; //Abort when the user cancelled the save dialog
+  if (not SplineModel.ChangesSaved) then
+    if (Application.MessageBox('Save changes?','New Spline',MB_YESNO) = IDYES) then
+      if not SaveSpline() then
+        Exit; //Abort when the user cancelled the save dialog
 
-  //Destroy spline and create new one
-  Spline.Free();
-  Spline := InitSpline();
-  SplineModel.Spline := Spline;
+  //Clear and initialize spline
+  InitSpline(Spline);
+  SplineModel.ChangesSaved := True;
 end;
 
 procedure TMainForm.mnCloseClick(Sender: TObject);
 begin
-  //Close this spline
+  //Save spline before closing?
+  if (not SplineModel.ChangesSaved) then
+    if(Application.MessageBox('Save changes?','Closing Editor',MB_YESNO) = IDYES) then
+      if not SaveSpline() then
+        Exit;
 
-end;
-
-procedure TMainForm.mnEditClick(Sender: TObject);
-begin
-
+  Close();
 end;
 
 procedure TMainForm.mnOpenClick(Sender: TObject);
+var
+  Loader: TSplineLoader;
 begin
-  //Open spline from file
+  //Save existing spline before opening?
+  if (not SplineModel.ChangesSaved) then
+    if(Application.MessageBox('Save changes?','Open Spline',MB_YESNO) = IDYES) then
+      if not SaveSpline() then
+        Exit;
 
+  //Open spline from file
+  if OpenSplineDlg.Execute() then
+  begin
+    SplineModel.FileName := OpenSplineDlg.FileName;
+
+    Loader := TSplineLoader.Create();
+    try
+      Loader.LoadFromFile( Spline, SplineModel.Filename );
+      SplineModel.ChangesSaved := True;
+    finally
+      Loader.Free();
+    end;
+  end;
 end;
 
 function TMainForm.SaveSpline(): Boolean;
@@ -218,9 +236,15 @@ begin
     else
       Exit; //no file name given.. abort!
 
+  //File exists.. overwrite??
+  if FileExists(SplineModel.Filename) then
+    if (Application.MessageBox('File allready exists. Overwrite?','Save Spline',MB_YESNO) = IDNO) then
+      Exit;
+
   Saver := TSplineSaver.Create();
   try
     Saver.SaveToFile( Spline, SplineModel.Filename );
+    SplineModel.ChangesSaved := True;
     Result := True;
   finally
     Saver.Free();

@@ -14,18 +14,18 @@ object MainForm: TMainForm
   LCLVersion = '0.9.30'
   object ViewPaintBox: TPaintBox
     Left = 176
-    Height = 466
+    Height = 494
     Top = 0
     Width = 617
     Align = alClient
   end
   object LeftPanel: TPanel
     Left = 0
-    Height = 466
+    Height = 494
     Top = 0
     Width = 170
     Align = alLeft
-    ClientHeight = 466
+    ClientHeight = 494
     ClientWidth = 170
     TabOrder = 0
     object AnchorList: TListBox
@@ -49,11 +49,11 @@ object MainForm: TMainForm
     end
     object AnchorPanel: TPanel
       Left = 1
-      Height = 223
+      Height = 251
       Top = 242
       Width = 168
       Align = alClient
-      ClientHeight = 223
+      ClientHeight = 251
       ClientWidth = 168
       TabOrder = 2
       object edtPosX: TFloatSpinEdit
@@ -201,7 +201,7 @@ object MainForm: TMainForm
       end
       object ContentsMemo: TMemo
         Left = 1
-        Height = 62
+        Height = 90
         Top = 158
         Width = 159
         Anchors = [akTop, akLeft, akRight, akBottom]
@@ -211,21 +211,9 @@ object MainForm: TMainForm
   end
   object Splitter1: TSplitter
     Left = 170
-    Height = 466
+    Height = 494
     Top = 0
     Width = 6
-  end
-  object StatusBar1: TStatusBar
-    Left = 0
-    Height = 28
-    Top = 466
-    Width = 793
-    Panels = <    
-      item
-        Text = 'Mouse position'
-        Width = 50
-      end>
-    SimplePanel = False
   end
   object MainMenu1: TMainMenu
     left = 16
@@ -255,7 +243,6 @@ object MainForm: TMainForm
     end
     object mnEdit: TMenuItem
       Caption = 'Edit'
-      OnClick = mnEditClick
       object mnMoveSpline: TMenuItem
         Caption = 'Move Spline'
         OnClick = mnMoveSplineClick
