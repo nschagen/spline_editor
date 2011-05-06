@@ -5,7 +5,8 @@ unit usplinemodel;
 interface
 
 uses
-  Classes, SysUtils, uspline, uviewplane, nasha_vectors, nasha_primitives;
+  Classes, SysUtils, uspline, uviewplane, nasha_vectors, nasha_primitives,
+  math;
 
 type
   TSplineModel = class;
@@ -48,6 +49,9 @@ type
     procedure Move(aDisplacement: TVector3f);
     function getAABB(): TnaAABBf;
     function GetClosestSegmentInViewPlane(aViewVec: TVector2f; aViewPlane: TViewPlane): PSplineSegment;
+
+    function UpVectorToAngle(aAnchor: TSplineAnchor): Single;
+    procedure SetUpvectorAsAngle(aAnchor: TSplineAnchor; aAngle: Single);
 
     property Spline: TSpline read FSpline write SetSpline;
     property FileName: String read FFilename write FFilename;
@@ -247,6 +251,42 @@ begin
   Updating := False;
 end;
 
+//Converts the upvector of the given anchor to an angle (in degrees)
+function TSplineModel.UpVectorToAngle(aAnchor: TSplineAnchor): Single;
+const
+  UNIVERSAL_UP: TVector3f = (x: 0; y: 1; z: 0);
+  FALLBACK_UP:  TVector3f = (x: 0; y: 0; z: 1);
+var
+  T, Up, C: TVector3f;
+begin
+  T := vecNorm(aAnchor.TangentVector);
+
+  c := Veccross(T,  UNIVERSAL_UP);
+  if vecEquals(c, Vec3f(0,0,0)) then
+  begin
+  	//Use angle between upvector and Z
+    Up     := FALLBACK_UP;
+  end else begin
+  	//Use angle between upvector and the up-pointing vector in the plane defined by tangent
+  	Up     := vecNorm(vecCross(vecNorm(C), T));
+  end;
+	Result := RadToDeg(arccos(vecDot(Up, vecNorm(aAnchor.UpVector))));
+
+  C := vecNorm(vecCross(Up, aAnchor.UpVector));
+  //Special case for 3rd and 4rth quadrant (we want 0-360 angles!!!)
+  if not vecEquals(C, T) then
+    Result := 360 - Result;
+end;
+
+//Sets the upvector of the given anchor by giving an angle
+procedure TSplineModel.SetUpvectorAsAngle(aAnchor: TSplineAnchor; aAngle: Single);
+const
+  UNIVERSAL_UP: TVector3f = (x: 0; y: 1; z: 0);
+  FALLBACK_UP:  TVector3f = (x: 0; y: 0; z: 1);
+begin
+
+end;
+
 { TSplineAnchorHandle }
 
 constructor TSplineAnchorHandle.Create(aModel: TSplineModel; aAnchor: TSplineAnchor; aType: TSplineAnchorHandleType);
@@ -280,4 +320,4 @@ begin
 end;
 
 end.
-
+

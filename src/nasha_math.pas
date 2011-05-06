@@ -126,7 +126,7 @@ end;
 
 function Equals(const a, b: Single): Boolean;
 begin
-  Result := (a - b < EPSILON);
+  Result := (Abs(a - b) < EPSILON);
 end;
 
-end.
+end.

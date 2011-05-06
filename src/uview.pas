@@ -85,6 +85,16 @@ const
 
   GRID_SIZE      = 10.0;
 
+  //Minimal distance between the head of the upvector and the anchor
+  //which is required to show it.
+  UPVECTOR_SHOW_TOLERANCE = 10;
+
+  //Length of upvector (after multiplying with view Height)
+  UPVECTOR_LENGTH = 0.05;
+
+  MIN_VIEW_HEIGHT = 1;
+  MAX_VIEW_HEIGHT = 2000;
+
 implementation
 
 { TSplineEditorView }
@@ -218,18 +228,16 @@ begin
     storedSpline[I].y := pos.y;
   end;
 
-  {SetLength(storedSpline, FSplineModel.Spline.SegmentCount);
-  for I:=0 to FSplineModel.Spline.SegmentCount -1 do
-  begin
-    pos := WorldToScreen(FSplineModel.Spline.Segments[I]^.v_pos);
-    storedSpline[I].x := pos.x;
-    storedSpline[I].y := pos.y;
-  end;}
   FScreenBitmap.DrawPolygonAntialias(storedSpline,c,2);
 
   //Draw anchors
   for I:=0 to FSplineModel.Spline.AnchorCount -1 do
-    DrawAnchor(FSplineModel.Spline.Anchors[I]);
+    if not (FSplineModel.SelectedAnchor = FSplineModel.Spline.Anchors[I]) then
+      DrawAnchor(FSplineModel.Spline.Anchors[I]);
+
+  //Draw selected anchor last
+  if Assigned(FSplineModel.SelectedAnchor) then
+    DrawAnchor(FSplineModel.SelectedAnchor);
 
   //Draw "insert anchor" points
   for I:=0 to FSplineModel.Spline.AnchorCount -1 do
@@ -291,21 +299,24 @@ end;
 
 procedure TSplineEditorView.DrawAnchor(aAnchor: TSplineAnchor);
 var
-  t1,t2,a: TVector2i;
-  FillColor, BorderColor: TBGRAPixel;
+  t1,t2,a,u: TVector2i;
+  FillColor, BorderColor, UpColor: TBGRAPixel;
 begin
   if aAnchor = SplineModel.SelectedAnchor then
   begin
     BorderColor := BGRA(255,255,255,255);
     FillColor   := BGRA(255,192,0,192);
+    UpColor     := BGRA(126, 192, 126, 192);
   end else begin
     BorderColor := BGRA(255,255,255,255);
     FillColor   := BGRA(0,0,255,192);
+    UpColor     := BGRA(0, 192, 0, 192);
   end;
 
   a  := WorldToScreen(aAnchor.Position);
   t1 := WorldToScreen(VecAdd(aAnchor.Position, aAnchor.TangentVector));
   t2 := WorldToScreen(VecSub(aAnchor.Position, aAnchor.TangentVector));
+  u  := WorldToScreen(VecAdd(aAnchor.Position, VecScaleFactor(aAnchor.UpVector,UPVECTOR_LENGTH*ViewHeight)));
 
   FScreenBitmap.Rectangle(a.x-5,  a.y-5,  a.x+5,  a.y+5, BorderColor, FillColor, dmLinearBlend);
 
@@ -316,11 +327,18 @@ begin
 
     FScreenBitmap.DrawLineAntialias(t1.x,t1.y,t2.x,t2.y,FillColor,2);
   end;
+  if FShowUpVectors and (Vec2iLength(Vec2iSub(a,u)) > UPVECTOR_SHOW_TOLERANCE) then
+  begin
+    FScreenBitmap.DrawLineAntialias(a.x,a.y,u.x,u.y,UpColor,2);
+    FScreenBitmap.Rectangle(u.x-5, u.y-5, u.x+5, u.y+5,BorderColor, UpColor, dmLinearBlend);
+  end;
 end;
 
 procedure TSplineEditorView.Zoom(const aFactor: Single);
 begin
   ViewHeight := ViewHeight * aFactor;
+  if ViewHeight > MAX_VIEW_HEIGHT then ViewHeight := MAX_VIEW_HEIGHT;
+  if ViewHeight < MIN_VIEW_HEIGHT then ViewHeight := MIN_VIEW_HEIGHT;
 end;
 
 procedure TSplineEditorView.Move(const aMouseDelta: TVector2i);
@@ -466,4 +484,4 @@ begin
 end;
 
 end.
-
+

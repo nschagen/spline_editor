@@ -103,7 +103,7 @@ procedure InitSpline(aSpline: TSpline);
     Anchor := TSplineAnchor.Create(Spline);
     Anchor.Position      := Pos;
     Anchor.TangentVector := Tangent;
-    Anchor.UpVector      := Vec3f(0,0,1);
+    Anchor.UpVector      := Vec3f(0,1,0);
     aSpline.AddAnchor(Anchor);
   end;
 
@@ -345,6 +345,7 @@ begin
     edtDirX.Value := aAnchor.TangentVector.x;
     edtDirY.Value := aAnchor.TangentVector.y;
     edtDirZ.Value := aAnchor.TangentVector.z;
+    edtUpVecAngle.Value := aModel.UpVectorToAngle(aAnchor);
   end else begin
     AnchorList.ItemIndex := -1;
 
@@ -390,6 +391,7 @@ begin
   edtDirX.Value := aAnchor.TangentVector.x;
   edtDirY.Value := aAnchor.TangentVector.y;
   edtDirZ.Value := aAnchor.TangentVector.z;
+  edtUpVecAngle.Value := aModel.UpVectorToAngle(aAnchor);
 end;
 
 procedure TMainForm.ChangeAnchorProperty(Sender: TObject);
@@ -403,11 +405,11 @@ begin
   if assigned(Anchor) then
   begin
     Anchor.Position      := Vec3f(edtPosX.Value,
-                                 edtPosY.Value,
-                                 edtPosZ.Value);
+                                  edtPosY.Value,
+                                  edtPosZ.Value);
     Anchor.TangentVector := Vec3f(edtDirX.Value,
-                                 edtDirY.Value,
-                                 edtDirZ.Value);
+                                  edtDirY.Value,
+                                  edtDirZ.Value);
   end;
 
   //Update view to reflect new situation
@@ -420,4 +422,4 @@ begin
 end;
 
 end.
-
+
