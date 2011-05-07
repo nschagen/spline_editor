@@ -11,7 +11,6 @@ uses
   uviewplane, usplinexml;
 
 type
-
   { TMainForm }
 
   TMainForm = class(TForm)
@@ -410,6 +409,7 @@ begin
     Anchor.TangentVector := Vec3f(edtDirX.Value,
                                   edtDirY.Value,
                                   edtDirZ.Value);
+    SplineModel.SetUpvectorAsAngle(Anchor, edtUpVecAngle.Value);
   end;
 
   //Update view to reflect new situation

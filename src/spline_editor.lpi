@@ -48,7 +48,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="6"/>
         <CursorPos X="8" Y="24"/>
-        <UsageCount Value="173"/>
+        <UsageCount Value="174"/>
       </Unit0>
       <Unit1>
         <Filename Value="umain.pas"/>
@@ -56,12 +56,11 @@
         <ComponentName Value="MainForm"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="umain"/>
-        <IsVisibleTab Value="True"/>
         <EditorIndex Value="0"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="378"/>
-        <CursorPos X="32" Y="393"/>
-        <UsageCount Value="173"/>
+        <TopLine Value="345"/>
+        <CursorPos X="40" Y="360"/>
+        <UsageCount Value="174"/>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
       </Unit1>
@@ -80,17 +79,18 @@
         <WindowIndex Value="0"/>
         <TopLine Value="1"/>
         <CursorPos X="3" Y="10"/>
-        <UsageCount Value="170"/>
+        <UsageCount Value="171"/>
       </Unit3>
       <Unit4>
         <Filename Value="uview.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="uview"/>
-        <EditorIndex Value="3"/>
+        <IsVisibleTab Value="True"/>
+        <EditorIndex Value="5"/>
         <WindowIndex Value="0"/>
         <TopLine Value="227"/>
-        <CursorPos X="20" Y="233"/>
-        <UsageCount Value="170"/>
+        <CursorPos X="4" Y="238"/>
+        <UsageCount Value="171"/>
         <Loaded Value="True"/>
       </Unit4>
       <Unit5>
@@ -108,8 +108,8 @@
         <EditorIndex Value="7"/>
         <WindowIndex Value="0"/>
         <TopLine Value="145"/>
-        <CursorPos X="1" Y="392"/>
-        <UsageCount Value="170"/>
+        <CursorPos X="4" Y="158"/>
+        <UsageCount Value="171"/>
         <Loaded Value="True"/>
       </Unit6>
       <Unit7>
@@ -120,7 +120,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="115"/>
         <CursorPos X="24" Y="128"/>
-        <UsageCount Value="170"/>
+        <UsageCount Value="171"/>
         <Loaded Value="True"/>
       </Unit7>
       <Unit8>
@@ -131,7 +131,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="26"/>
         <CursorPos X="8" Y="37"/>
-        <UsageCount Value="170"/>
+        <UsageCount Value="171"/>
         <Loaded Value="True"/>
       </Unit8>
       <Unit9>
@@ -142,7 +142,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="134"/>
         <CursorPos X="25" Y="148"/>
-        <UsageCount Value="170"/>
+        <UsageCount Value="171"/>
         <Loaded Value="True"/>
       </Unit9>
       <Unit10>
@@ -153,7 +153,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="33"/>
         <CursorPos X="47" Y="43"/>
-        <UsageCount Value="170"/>
+        <UsageCount Value="171"/>
         <Loaded Value="True"/>
       </Unit10>
       <Unit11>
@@ -164,7 +164,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="118"/>
         <CursorPos X="74" Y="110"/>
-        <UsageCount Value="170"/>
+        <UsageCount Value="171"/>
         <Loaded Value="True"/>
       </Unit11>
       <Unit12>
@@ -269,18 +269,18 @@
         <WindowIndex Value="0"/>
         <TopLine Value="80"/>
         <CursorPos X="28" Y="96"/>
-        <UsageCount Value="143"/>
+        <UsageCount Value="144"/>
         <Loaded Value="True"/>
       </Unit24>
       <Unit25>
         <Filename Value="usplinemodel.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="usplinemodel"/>
-        <EditorIndex Value="5"/>
+        <EditorIndex Value="4"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="1"/>
-        <CursorPos X="7" Y="9"/>
-        <UsageCount Value="136"/>
+        <TopLine Value="292"/>
+        <CursorPos X="7" Y="298"/>
+        <UsageCount Value="137"/>
         <Loaded Value="True"/>
       </Unit25>
       <Unit26>
@@ -300,7 +300,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="29"/>
         <CursorPos X="19" Y="45"/>
-        <UsageCount Value="89"/>
+        <UsageCount Value="90"/>
       </Unit27>
       <Unit28>
         <Filename Value="umoveform.pas"/>
@@ -311,7 +311,7 @@
         <WindowIndex Value="0"/>
         <TopLine Value="29"/>
         <CursorPos X="11" Y="44"/>
-        <UsageCount Value="88"/>
+        <UsageCount Value="89"/>
       </Unit28>
       <Unit29>
         <Filename Value="C:\lazarus\lcl\include\customform.inc"/>
@@ -345,11 +345,11 @@
         <Filename Value="uviewplane.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="uviewplane"/>
-        <EditorIndex Value="4"/>
+        <EditorIndex Value="3"/>
         <WindowIndex Value="0"/>
         <TopLine Value="1"/>
         <CursorPos X="35" Y="7"/>
-        <UsageCount Value="75"/>
+        <UsageCount Value="76"/>
         <Loaded Value="True"/>
       </Unit33>
       <Unit34>
