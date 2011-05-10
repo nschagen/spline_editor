@@ -6,7 +6,7 @@ interface
 
 uses
   Classes, SysUtils, uspline, uviewplane, nasha_vectors, nasha_primitives,
-  math;
+  math, nasha_math;
 
 type
   TSplineModel = class;
@@ -27,6 +27,7 @@ type
     FChangesSaved:   Boolean;
     FSpline:         TSpline;
     FSelectedAnchor: TSplineAnchor;
+
     FOnSelectAnchor: TOnSelectAnchorEvent;
     FOnSplineChange: TOnSplineChangeEvent;
     FOnAnchorChange: TOnAnchorChangeEvent;
@@ -48,8 +49,8 @@ type
     procedure Scale(aFactors: TVector3f);
     procedure Move(aDisplacement: TVector3f);
     function getAABB(): TnaAABBf;
-    function GetClosestSegmentInViewPlane(aViewVec: TVector2f; aViewPlane: TViewPlane): PSplineSegment;
 
+    procedure UpdateUpVector(aAnchor: TSplineAnchor);
     function UpVectorToAngle(aAnchor: TSplineAnchor): Single;
     procedure SetUpvectorAsAngle(aAnchor: TSplineAnchor; aAngle: Single);
 
@@ -201,26 +202,6 @@ begin
   end;
 end;
 
-function TSplineModel.GetClosestSegmentInViewPlane(aViewVec: TVector2f; aViewPlane: TViewPlane): PSplineSegment;
-var
-  I: Integer;
-  SqrDist,
-  ClosestSqrDist: Single;
-begin
-  Result := nil;
-  ClosestSqrDist := MaxInt;
-  for I := 0 to Spline.GetSegmentCount() - 1 do
-  begin
-    //compute squared distance (saves us one square root)
-    SqrDist := vec2fLengthSqr(vec2fSub(ProjectOnViewPlane(Spline.Segments[I]^.v_center, aViewPlane), aViewVec));
-    if SqrDist < ClosestSqrDist then
-    begin
-      ClosestSqrDist := SqrDist;
-      Result         := Spline.Segments[I];
-    end;
-  end;
-end;
-
 procedure TSplineModel.Scale(aFactors: TVector3f);
 var
   I: Integer;
@@ -252,6 +233,8 @@ begin
 end;
 
 //Converts the upvector of the given anchor to an angle (in degrees)
+//Angle rotates upvector around spline in clockwise arder when looking along the spline
+//in positive direction
 function TSplineModel.UpVectorToAngle(aAnchor: TSplineAnchor): Single;
 const
   UNIVERSAL_UP: TVector3f = (x: 0; y: 1; z: 0);
@@ -270,21 +253,62 @@ begin
   	//Use angle between upvector and the up-pointing vector in the plane defined by tangent
   	Up     := vecNorm(vecCross(vecNorm(C), T));
   end;
-	Result := RadToDeg(arccos(vecDot(Up, vecNorm(aAnchor.UpVector))));
+	Result := RadToDeg(arccos(Clamp(vecDot(Up, vecNorm(aAnchor.UpVector)))));
 
-  C := vecNorm(vecCross(Up, aAnchor.UpVector));
   //Special case for 3rd and 4rth quadrant (we want 0-360 angles!!!)
-  if not vecEquals(C, T) then
+  if not vecEquals(vecNorm(vecCross(Up, aAnchor.UpVector)), T) then
     Result := 360 - Result;
+
+  //Make sure our output is OK
+  Result := ClampAngle(Result);
 end;
 
 //Sets the upvector of the given anchor by giving an angle
+//Angle rotates upvector around spline in clockwise arder when looking along the spline
+//in positive direction
 procedure TSplineModel.SetUpvectorAsAngle(aAnchor: TSplineAnchor; aAngle: Single);
 const
   UNIVERSAL_UP: TVector3f = (x: 0; y: 1; z: 0);
   FALLBACK_UP:  TVector3f = (x: 0; y: 0; z: 1);
+var
+  T, Up, Left: TVector3f;
 begin
+  T := vecNorm(aAnchor.TangentVector);
+  Left := Veccross(T,  UNIVERSAL_UP);
+  if vecEquals(Left, Vec3f(0,0,0)) then
+  begin
+    //Spline runs vertical (Special case!!)
+    //Rotate clockwise around Y axis (Angle = 0 results in Z)
+    aAnchor.Upvector := Vec3f(sin(DegToRad(aAngle)),
+                              0,
+                              cos(DegToRad(aAngle)));
+  end else begin
+    //Spline runs vertical (Special case!!)
+    //Rotate clockwise around Y axis (Angle = 0 results in Z)
+    aAnchor.Upvector := vecAdd(vecScaleFactor(Left,         sin(DegToRad(aAngle)) ),
+                               vecScaleFactor(UNIVERSAL_UP, cos(DegToRad(aAngle)) ));
+  end;
+end;
 
+//Must be called after changing the tangent of aAnchor.
+//This will make sure that the upvector will stay perpendicular to the spline
+procedure TSplineModel.UpdateUpVector(aAnchor: TSplineAnchor);
+const
+  UNIVERSAL_UP: TVector3f = (x: 0; y: 1; z: 0);
+  FALLBACK_UP:  TVector3f = (x: 0; y: 0; z: 1);
+var
+  T,C: TVector3f;
+begin
+  T := VecNorm(aAnchor.TangentVector);
+  c := VecCross(T,  UNIVERSAL_UP);
+  if vecEquals(c, Vec3f(0,0,0)) then
+    //Project Vector onto XZ plane
+    aAnchor.UpVector := VecNorm(Vec3f(aAnchor.Upvector.x,
+                                      0,
+                                      aAnchor.Upvector.z))
+  else
+    //Project upvector onto plane (who's normal is the Tangent)
+    aAnchor.UpVector := VecNorm(VecCross(vecNorm(c), T))
 end;
 
 { TSplineAnchorHandle }

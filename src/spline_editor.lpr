@@ -9,8 +9,7 @@ uses
   Interfaces, // this includes the LCL widgetset
   Forms, umain, usplineeditor, uview, nasha_vectors, nasha_math, nasha_matrices,
   nasha_primitives, uspline, usplinexml, bgrabitmappack, umouse, usplinemodel,
-  uscaleform, umoveform, uviewplane
-  { you can add units after this };
+  uscaleform, umoveform, uviewplane;
 
 {$R *.res}
 

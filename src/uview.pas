@@ -87,10 +87,10 @@ const
 
   //Minimal distance between the head of the upvector and the anchor
   //which is required to show it.
-  UPVECTOR_SHOW_TOLERANCE = 10;
+  UPVECTOR_SHOW_TOLERANCE = 5;
 
   //Length of upvector (after multiplying with view Height)
-  UPVECTOR_LENGTH = 0.05;
+  UPVECTOR_LENGTH = 0.07;
 
   MIN_VIEW_HEIGHT = 1;
   MAX_VIEW_HEIGHT = 2000;
@@ -330,7 +330,7 @@ begin
   if FShowUpVectors and (Vec2iLength(Vec2iSub(a,u)) > UPVECTOR_SHOW_TOLERANCE) then
   begin
     FScreenBitmap.DrawLineAntialias(a.x,a.y,u.x,u.y,UpColor,2);
-    FScreenBitmap.Rectangle(u.x-5, u.y-5, u.x+5, u.y+5,BorderColor, UpColor, dmLinearBlend);
+    FScreenBitmap.Rectangle(u.x-5, u.y-5, u.x+5, u.y+5,BGRA(0,0,0,0), UpColor, dmLinearBlend);
   end;
 end;
 
@@ -484,4 +484,4 @@ begin
 end;
 
 end.
-
+

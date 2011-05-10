@@ -54,11 +54,13 @@ type
     Splitter1: TSplitter;
     Splitter2: TSplitter;
     procedure AnchorListClick(Sender: TObject);
+    procedure ContentsMemoChange(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure FormKeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure mnAboutClick(Sender: TObject);
     procedure mnCloseClick(Sender: TObject);
+    procedure mnInstructionsClick(Sender: TObject);
     procedure mnMoveSplineClick(Sender: TObject);
     procedure mnNewClick(Sender: TObject);
     procedure mnOpenClick(Sender: TObject);
@@ -144,12 +146,14 @@ begin
   ViewPaintBox.OnMouseDown    := @MouseController.EditorMouseDown;
   ViewPaintBox.OnMouseMove    := @MouseController.EditorMouseMove;
   ViewPaintBox.OnMouseUp      := @MouseController.EditorMouseUp;
-  ViewPaintBox.OnMouseEnter   := @MouseController.EditorMouseEnter;
-  ViewPaintBox.OnMouseLeave   := @MouseController.EditorMouseLeave;
   ViewPaintBox.OnMouseWheel   := @MouseController.EditorMouseWheel;
 
   //Make sure the spline anchors are visible in anchorList
   SplineChange(SplineModel);
+
+  //Initialize properties panel
+  SelectAnchor(SplineModel, SplineModel.Spline.Anchors[0]);
+  View.ReDraw();
 end;
 
 procedure TMainForm.FormDestroy(Sender: TObject);
@@ -186,6 +190,10 @@ begin
   //Clear and initialize spline
   InitSpline(Spline);
   SplineModel.ChangesSaved := True;
+
+  //Initialize properties panel
+  SelectAnchor(SplineModel, SplineModel.Spline.Anchors[0]);
+  View.ReDraw();
 end;
 
 procedure TMainForm.mnCloseClick(Sender: TObject);
@@ -197,6 +205,11 @@ begin
         Exit;
 
   Close();
+end;
+
+procedure TMainForm.mnInstructionsClick(Sender: TObject);
+begin
+
 end;
 
 procedure TMainForm.mnOpenClick(Sender: TObject);
@@ -221,6 +234,10 @@ begin
     finally
       Loader.Free();
     end;
+
+    //Initialize properties panel
+    SelectAnchor(SplineModel, SplineModel.Spline.Anchors[0]);
+    View.ReDraw();
   end;
 end;
 
@@ -345,6 +362,8 @@ begin
     edtDirY.Value := aAnchor.TangentVector.y;
     edtDirZ.Value := aAnchor.TangentVector.z;
     edtUpVecAngle.Value := aModel.UpVectorToAngle(aAnchor);
+
+    ContentsMemo.Text := aAnchor.Text;
   end else begin
     AnchorList.ItemIndex := -1;
 
@@ -361,6 +380,8 @@ begin
     edtDirX.Value := 0.0;
     edtDirY.Value := 0.0;
     edtDirZ.Value := 0.0;
+
+    ContentsMemo.Clear();
   end;
 
   View.ReDraw();
@@ -391,6 +412,9 @@ begin
   edtDirY.Value := aAnchor.TangentVector.y;
   edtDirZ.Value := aAnchor.TangentVector.z;
   edtUpVecAngle.Value := aModel.UpVectorToAngle(aAnchor);
+
+  //Tangent could've been changed... update Upvector!
+  aModel.UpdateUpVector(aAnchor);
 end;
 
 procedure TMainForm.ChangeAnchorProperty(Sender: TObject);
@@ -409,7 +433,11 @@ begin
     Anchor.TangentVector := Vec3f(edtDirX.Value,
                                   edtDirY.Value,
                                   edtDirZ.Value);
+
+    //Update upvector by computing it from a (possibly) new angle
     SplineModel.SetUpvectorAsAngle(Anchor, edtUpVecAngle.Value);
+
+    Anchor.Text := ContentsMemo.Text;
   end;
 
   //Update view to reflect new situation
@@ -421,5 +449,10 @@ begin
   SplineModel.SelectedAnchor := SplineModel.Spline.Anchors[AnchorList.ItemIndex];
 end;
 
+procedure TMainForm.ContentsMemoChange(Sender: TObject);
+begin
+
+end;
+
 end.
-
+

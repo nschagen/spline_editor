@@ -50,6 +50,9 @@ begin
       AnchorNode    := Doc.CreateElement('Anchor');
       TDOMElement(AnchorNode).SetAttribute('ID', IntToStr(I));
 
+      //Set text content
+      AnchorNode.TextContent:= Anchor.Text;
+
       Position  := Doc.CreateElement('Position');
       with TDOMElement(Position) do
       begin
@@ -127,6 +130,8 @@ begin
         v.z := StrToFloat(TDOMElement(Upvector).GetAttribute('z'));
         Anchor.UpVector := v;
 
+        Anchor.Text := AnchorNode.TextContent;
+
         aSpline.AddAnchor(Anchor);
         AnchorNode := AnchorNode.NextSibling;
       end;
@@ -141,4 +146,4 @@ begin
 end;
 
 end.
-
+

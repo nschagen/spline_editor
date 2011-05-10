@@ -34,6 +34,7 @@ type
     FPosition            : TVector3f;
     FUpVector            : TVector3f;
     FTangentVector       : TVector3f;
+    FText                : String;
     function GetPreviousAnchor : TSplineAnchor;
     function GetNextAnchor : TSplineAnchor;
   public
@@ -46,6 +47,7 @@ type
     property Position: TVector3f read FPosition write FPosition;
     property UpVector: TVector3f read FUpVector write FUpVector;
     property TangentVector: TVector3f read FTangentVector write FTangentVector;
+    property Text: String read FText write FText;
     property Previous: TSplineAnchor read GetPreviousAnchor;
     property Next: TSplineAnchor read GetNextAnchor;
   end;
@@ -116,6 +118,7 @@ constructor TSplineAnchor.Create(aSpline: TSpline);
 begin
   inherited Create;
   FSpline := aSpline;
+  FText   := '';
 end;
 
 function TSplineAnchor.GetPreviousAnchor : TSplineAnchor;
@@ -641,4 +644,4 @@ begin
 end;
 
 end.
-
+

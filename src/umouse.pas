@@ -27,8 +27,6 @@ type
 
     //Mouse Operations
     procedure EditorMouseDown(Sender: TObject; Button: TMouseButton;Shift: TShiftState; X, Y: Integer);
-    procedure EditorMouseEnter(Sender: TObject);
-    procedure EditorMouseLeave(Sender: TObject);
     procedure EditorMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
     procedure EditorMouseUp(Sender: TObject; Button: TMouseButton;Shift: TShiftState; X, Y: Integer);
     procedure EditorMouseWheel(Sender: TObject; Shift: TShiftState; WheelDelta: Integer; MousePos: TPoint; var Handled: Boolean);
@@ -175,16 +173,6 @@ begin
     View.Zoom(1.1);
 end;
 
-procedure TMouseController.EditorMouseEnter(Sender: TObject);
-begin
-
-end;
-
-procedure TMouseController.EditorMouseLeave(Sender: TObject);
-begin
-
-end;
-
 function TMouseController.IsHandleClicked(aMousePos: TVector2i): TAbstractHandle;
 const
   HANDLE_SIZE = 10;
@@ -235,4 +223,3 @@ begin
 end;
 
 end.
-

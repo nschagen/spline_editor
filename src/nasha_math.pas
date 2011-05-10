@@ -42,6 +42,7 @@ interface
 
   function Equals(const a, b: Single): Boolean;
   function Clamp(const Value: Single; UpperBound: Single = 1; LowerBound: Single = 0): Single;
+  function ClampAngle(const Angle: Single): Single;
 
 const
   //A treshold for float comparison
@@ -124,9 +125,16 @@ begin
       Result := Upperbound;
 end;
 
+function ClampAngle(const Angle: Single): Single;
+begin
+  Result := Angle;
+  if Result < 0    then Result := (1 - Frac(Result / 360)) * 360;
+  if Result >= 360 then Result := Frac(Result / 360)       * 360;
+end;
+
 function Equals(const a, b: Single): Boolean;
 begin
   Result := (Abs(a - b) < EPSILON);
 end;
 
-end.
+end.
