@@ -1,0 +1,17 @@
+Hi,
+
+This is my spline-editor programmed in pascal using Lazarus 0.9.30 and FreePascal 2.4.2
+It is released under the "new BSD license" and is found to be working on both 
+Windows and Ubuntu.
+
+Features include:
+> WYSIWYG Spline creation and manipuation
+> True 3D splines that can be seen from front/side/top view
+> Up-vectors that denote "what is up", can be defined using angles with respect 
+to the positive Y axis.
+> Move or Scale your splines to make them fit into any 3D world
+> Load and save your splines to a simple XML format
+
+I hope you will find this program usefull. :)
+
+Enjoy!
